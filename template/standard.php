@@ -39,68 +39,65 @@ header("Content-Type: text/html");
 <div id="menu">
 	<?php 
 	
-	if($_GET['p'] != 'files') {
-		?>
-	<a class="button" href="index.php">
-		<img src="img/zurueck.png" alt="" />
-		&Uuml;bersicht
-	</a>
-		<?php
+	/*
+	 * Navi-Eintrag: array($_GET['p'], icon-Dateiname, Label, (bool) anzeigen?)
+	 */
+	$navi = array(
+		
+		// Benutzer eingeloggt
+		array(
+			'files',
+			'dateien.png',
+			'Dateien',
+			true
+		),
+		array(
+			'settings',
+			'einstellungen.png',
+			'Einstellungen',
+			User::$login
+		),
+		// Admin
+		array(
+			'admin',
+			'admin.png',
+			'Admin',
+			User::$admin
+		),
+		array(
+			'logout',
+			'logout.png',
+			'Logout',
+			User::$login
+		),
+		
+		// nicht eingeloggt
+		array(
+			'login',
+			'login.png',
+			'Login',
+			!User::$login
+		),
+		array(
+			'register',
+			'registrieren.png',
+			'Registrieren',
+			!User::$login
+		),
+	);
+	
+	
+	foreach($navi as $nav) {
+		if($nav[3]) {
+			echo '
+	<a class="button'.($_GET['p'] == $nav[0] ? ' active' : '').'" href="index.php?p='.$nav[0].'">
+		<img src="img/'.$nav[1].'" alt="" />
+		'.$nav[2].'
+	</a>';
+		}
 	}
 	
-	// nicht eingeloggt
-	if(!User::$login) {
-		if($_GET['p'] != 'login') {
-			?>
-	<a class="button" href="index.php?p=login">
-		<img src="img/login.png" alt="" />
-		Login
-	</a>
-			<?php
-		}
-		if($_GET['p'] != 'register') {
-			?>
-	<a class="button" href="index.php?p=register">
-		<img src="img/registrieren.png" alt="" />
-		Registrieren
-	</a>
-			<?php
-		}
-	}
 	
-	// eingeloggt
-	else {
-		if(User::$admin AND $_GET['p'] != 'admin') {
-			?>
-	<a class="button" href="index.php?p=admin">
-		<img src="img/admin.png" alt="" />
-		Admin
-	</a>
-			<?php
-		}
-		if($_GET['p'] != 'upload') {
-			?>
-	<a class="button" href="index.php?p=upload">
-		<img src="img/hochladen.png" alt="" />
-		Hochladen
-	</a>
-			<?php
-		}
-		if($_GET['p'] != 'settings') {
-			?>
-	<a class="button" href="index.php?p=settings">
-		<img src="img/einstellungen.png" alt="" />
-		Einstellungen
-	</a>
-			<?php
-		}
-		?>
-	<a class="button" href="index.php?p=logout">
-		<img src="img/logout.png" alt="" />
-		Logout
-	</a>
-		<?php
-	}
 	
 	?>
 </div>

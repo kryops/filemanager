@@ -196,7 +196,7 @@ $(document).ready(function() {
 	});
 	
 	// Toggle-Icons
-	$(document).on('click', '.toggle', function() {
+	$(document).on('click', '.folder_toggle', function(e) {
 		
 		// Ziel-ID ermitteln
 		var id = $(this).data('id');
@@ -205,16 +205,33 @@ $(document).ready(function() {
 			return false;
 		}
 		
-		var target = $('#'+id);
+		var target = $('#folder'+id);
 		
 		var toggle = $(this).data('toggle') ? 0 : 1;
 		$(this).data('toggle', toggle);
 		
+		// Grafik ändern
+		$(this).find('img').attr('src', (toggle ? 'img/ordner-offen.png' : 'img/ordner.png'));
+		
+		
+		// Content schon geladen
+		if(target.data('loaded')) {
+			ajaxController.call('index.php?p=files&sp=toggle', false, {'id':id, 'toggle':toggle}, false);
+		}
+		// noch nicht geladen
+		else {
+			target.data('loaded', 1);
+			ajaxController.call('index.php?p=files&sp=toggle&load', target, {'id':id, 'toggle':toggle}, false);
+		}
+		
 		target.slideToggle(300);
 		
-		// in der Session speichern
-		id = id.replace(/[^\d]/g, '');
-		ajaxController.call('index.php?p=files&sp=toggle', false, {'id':id, 'toggle':toggle}, false);
+		e.preventDefault();
+	});
+	
+	// Wurzekordner ändern
+	$('#select_topfolder').change(function() {
+		url('index.php?p=files&top='+$(this).val());
 	});
 	
 });

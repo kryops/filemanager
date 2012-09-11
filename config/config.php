@@ -14,6 +14,8 @@ class Config {
 	
 	const name = 'TINF11B Dateimanager';
 	
+	const folder_top = 1;
+	
 	const debug = true;
 	
 	const mysql_host = 'localhost';

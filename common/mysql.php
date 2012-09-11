@@ -212,6 +212,63 @@ class MySQL {
 		return mysql_real_escape_string($str);
 	}
 	
+	/**
+	 * Zeile auslesen
+	 *
+	 * @param MySQLresult $query
+	 * @return object Zeile
+	 */
+	public static function fetch($query) {
+		
+		return mysql_fetch_object($query);
+		
+	}
+	
+	/**
+	 * Anzahl der Zeilen auslesen
+	 *
+	 * @param MySQLresult $query
+	 * @return int Zeilenanzahl
+	 */
+	public static function rows($query) {
+		
+		return mysql_num_rows($query);
+		
+	}
+	
+	/**
+	 * Speicher freigeben
+	 *
+	 * @param MySQLresult $query
+	 */
+	public static function free($query) {
+		
+		mysql_free_result($query);
+		
+	}
+	
+	/**
+	 * Betroffene Zeilen auslesen
+	 *
+	 * @return int betroffene Zeilen
+	 */
+	public static function affected() {
+		
+		return mysql_affected_rows();
+		
+	}
+	
+	/**
+	 * Eingefügte ID auslesen
+	 *
+	 * @return int ID
+	 */
+	public static function id() {
+		
+		return mysql_insert_id();
+		
+	}
+	
 	
 	/**
 	 * MySQL-Fehler zurückgeben

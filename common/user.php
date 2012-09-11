@@ -235,6 +235,19 @@ class User {
 		
 	}
 	
+	
+	/**
+	 * gibt die ID des ausgewählten Wurzel-Ordners zurück 
+	 */
+	public static function getTopFolder() {
+		if(isset($_SESSION[Config::session_prefix.'topfolder'])) {
+			return $_SESSION[Config::session_prefix.'topfolder'];
+		}
+		else {
+			return Config::folder_top;
+		}
+	}
+	
 }
 
 
