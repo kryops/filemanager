@@ -23,6 +23,37 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `fmg_files`
+--
+
+CREATE TABLE IF NOT EXISTS `fmg_files` (
+  `filesID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `filesName` varchar(50) NOT NULL,
+  `filesPath` varchar(50) NOT NULL,
+  `files_folderID` int(10) unsigned NOT NULL,
+  `files_userID` int(10) unsigned NOT NULL,
+  `filesDate` int(10) unsigned NOT NULL,
+  `filesThumbnail` varchar(50) NOT NULL,
+  PRIMARY KEY (`filesID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `fmg_folder`
+--
+
+CREATE TABLE IF NOT EXISTS `fmg_folder` (
+  `folderID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `folderName` varchar(50) NOT NULL,
+  `folderPath` varchar(50) NOT NULL,
+  `folderParent` int(11) NOT NULL,
+  PRIMARY KEY (`folderID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `fmg_user`
 --
 
