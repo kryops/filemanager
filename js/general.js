@@ -229,9 +229,21 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 	
-	// Wurzekordner ändern
+	// Wurzelordner ändern
 	$('#select_topfolder').change(function() {
 		url('index.php?p=files&top='+$(this).val());
+	});
+	
+	// Mobile Ansicht: Klick auf eine Datei
+	$(document).on('click', '.file', function(e) {
+		
+		if($(this).find('.file_size:visible').length == 0) {
+			
+			$('.file.active').removeClass('active');
+			$(this).addClass('active');
+			
+			e.preventDefault();
+		}
 	});
 	
 });

@@ -7,12 +7,123 @@ if(!defined('FILEMANAGER')) {
 
 class Files {
 	
+	/**
+	 * Zuordnung von Dateitypen zu Icon-Grafiken
+	 * Schlüssel = Dateiendung
+	 * Wert = Grafik
+	 */
+	public static $file_icons = array(
+		'default' => 'document.png',
+		
+		'txt' => 'document-text.png',
+		'rtf' => 'document-text.png',
+		
+		'doc' => 'document-word.png',
+		'docx' => 'document-word.png',
+		'dot' => 'document-word.png',
+		'xls' => 'document-excel-table.png',
+		'xlsx' => 'document-excel-table.png',
+		'ppt' => 'document-powerpoint.png',
+		'pptx' => 'document-powerpoint.png',
+		'pot' => 'document-powerpoint.png',
+		
+		'pdf' => 'document-pdf.png',
+		
+		'jpg' => 'document-image.png',
+		'jpeg' => 'document-image.png',
+		'bmp' => 'document-image.png',
+		'gif' => 'document-image.png',
+		'png' => 'document-image.png',
+		'tif' => 'document-image.png',
+		'xcf' => 'document-image.png',
+		'tga' => 'document-image.png',
+		'ico' => 'document-image.png',
+		
+		'mp3' => 'document-music.png',
+		'wma' => 'document-music.png',
+		'wav' => 'document-music.png',
+		'ogg' => 'document-music.png',
+		'aac' => 'document-music.png',
+		'mpga' => 'document-music.png',
+		'm2a' => 'document-music.png',
+		'm4a' => 'document-music.png',
+		
+		'mkv' => 'document-film.png',
+		'mpg' => 'document-film.png',
+		'mp1' => 'document-film.png',
+		'mp4' => 'document-film.png',
+		'flv' => 'document-film.png',
+		'mov' => 'document-film.png',
+		'avi' => 'document-film.png',
+		'wmv' => 'document-film.png',
+		
+		'psd' => 'document-photoshop.png',
+		
+		'htm' => 'document-code.png',
+		'html' => 'document-code.png',
+		'css' => 'document-code.png',
+		'js' => 'document-code.png',
+		'json' => 'document-code.png',
+		'php' => 'document-code.png',
+		'c' => 'document-code.png',
+		'cpp' => 'document-code.png',
+		'java' => 'document-code.png',
+		'class' => 'document-code.png',
+		'lisp' => 'document-code.png',
+		'ini' => 'document-code.png',
+		
+		'zip' => 'document-archiv.png',
+		'rar' => 'document-archiv.png',
+		'7z' => 'document-archiv.png',
+		'iso' => 'document-archiv.png',
+		'cab' => 'document-archiv.png',
+		'gz' => 'document-archiv.png',
+		'tar' => 'document-archiv.png',
+		'bzip' => 'document-archiv.png',
+		'bz2' => 'document-archiv.png',
+		'tgz' => 'document-archiv.png',
+		
+		'exe' => 'document-application.png',
+		'jar' => 'document-jar.png'
+	);
+	
+	
+	
+	public static $forbidden_files = array(
+		'php',
+		'html'
+	);
+	
+	
+	/**
+	 * Array der Ordner, von welchen schon 
+	 */
 	public static $files_loaded = array();
 	
 	
 	public static $files = array();
 	
 	
+	
+	/**
+	 * Den Datensatz einer Datei laden
+	 * @param int $id
+	 */
+	public static function get($id) {
+		
+		return MySQL::querySingle("
+			SELECT
+				".Config::mysql_prefix."files.*,
+				userName
+			FROM
+				".Config::mysql_prefix."files
+				LEFT JOIN ".Config::mysql_prefix."user
+					ON userID = files_userID
+			WHERE
+				filesID = ".(int)$id."
+		", __FILE__, __LINE__);
+		
+	}
 	
 	
 	/**
@@ -92,6 +203,10 @@ class Files {
 		}
 		
 		
+		// zurücksetzen, wenn alle geladen werden
+		self::$files = array();
+		
+		
 		$sql = "
 			SELECT
 				".Config::mysql_prefix."files.*,
@@ -116,6 +231,116 @@ class Files {
 		
 	}
 	
+	
+	/**
+	 * Dateityp ermitteln
+	 * @param string $filename
+	 * @return Datei-Endung
+	 */
+	public static function getFileType($filename) {
+		return strtolower(array_pop(explode('.', $filename)));
+	}
+	
+	
+	/**
+	 * Ermittelt das Datei-Icon zu einem Dateinamen
+	 * @param string $filename Dateiname
+	 * @return string Dateiname der Icon-Grafik
+	 */
+	public static function getIcon($filename) {
+		
+		// keine Dateiendung
+		if(strpos($filename, '.') === false) {
+			return self::$file_icons['default'];
+		}
+		
+		$filetype = self::getFileType($filename);
+		
+		
+		// bekannte Dateiendung
+		if(isset(self::$file_icons[$filetype])) {
+			return self::$file_icons[$filetype];
+		}
+		
+		// unbekannte Dateiendung
+		return self::$file_icons['default'];
+		
+	}
+	
+	
+	/**
+	 * Dateigröße formatieren
+	 * @param int $size Dateigröße in Bytes
+	 * @return string formatierte Dateigröße
+	 */
+	public static function formatSize($size) {
+		// > 1 GB
+		if($size > 1073741824) {
+			return round($size/1073741824, 1).'GB';
+		}
+		// > 10 MB
+		else if($size > 10485760) {
+			return round($size/1048576).'MB';
+		}
+		// > 1 MB
+		else if($size > 1048576) {
+			return round($size/1048576, 1).'MB';
+		}
+		// > 1 KB
+		else if($size > 1024) {
+			return round($size/1024).'KB';
+		}
+		// < 1 KB
+		else {
+			return $size.'B';
+		}
+	}
+	
+	/**
+	 * Datum formatieren
+	 * @param int $date Unix-Timestamp
+	 * @return string formatiertes Datum
+	 */
+	public static function formatDate($date) {
+		return strftime('%d.%m.%y', $date);
+	}
+	
+	
+	/**
+	 * Ermitteln, ob ein Dateityp erlaubt ist
+	 * @param string $filename
+	 * @return boolean
+	 */
+	public static function isAllowed($filename) {
+		return !in_array(
+			self::getFileType($filename),
+			self::$forbidden_files
+		);
+	}
+	
+	
+	/**
+	 * Dateiname Speicherungs-tauglich machen
+	 * @param string $filename
+	 * @return string bereinigter Dateiname
+	 */
+	public static function cleanFileName($filename) {
+		
+		$filename = str_replace(
+			array(' ', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß', '..'),
+			array('_', 'ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss', '.'),
+			$filename
+		);
+		
+		$filename = preg_replace('/[^a-zA-Z0-9\.\-_]/Uis', '', $filename);
+		
+		// Länge auf 100 begrenzt
+		if(strlen($filename) > 100) {
+			$filename = substr($filename, -100, 100);
+		}
+		
+		return $filename;
+	}
 	
 }
 

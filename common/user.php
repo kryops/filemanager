@@ -176,7 +176,7 @@ class User {
 	public static function cookie() {
 		setcookie(
 			Config::cookie_name,
-			$data->userID.'+'.$data->userPassword,
+			self::$data->userID.'+'.self::$data->userPassword,
 			time()+Config::cookie_lifetime
 		);
 	}

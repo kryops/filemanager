@@ -313,6 +313,31 @@ class Folder {
 		return $out;
 	}
 	
+	
+	/**
+	 * Vollständigen Pfad eines Ordners ermitteln
+	 * @param int $id Ordner-ID
+	 * @param bool $names Anzeigenamen verwenden @default false
+	 * @return string Pfad (mit abschließendem /)
+	 */
+	public static function getFolderPath($id, $names=false) {
+		
+		$folders = self::getparents($id, true);
+		
+		$folders[] = $id;
+		
+		foreach($folders as $key=>$val) {
+			$f = self::get($val);
+			if(!$f) {
+				unset($folders[$key]);
+				continue;
+			}
+			$folders[$key] = ($names ? $f->folderName : $f->folderPath).'/';
+		}
+		
+		return implode('', $folders);
+	}
+	
 }
 
 ?>

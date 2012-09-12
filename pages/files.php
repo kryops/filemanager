@@ -15,7 +15,11 @@ class FilesPage {
 	 */
 	public static $actions = array(
 		'' => 'displayOverview',
-		'toggle' => 'saveToggle'
+		'toggle' => 'saveToggle',
+		'edit' => 'editFile',
+		'delete' => 'deleteFile',
+		'download' => 'downloadFile',
+		'search' => 'doSearch'
 	);
 	
 	
@@ -58,7 +62,7 @@ class FilesPage {
 		
 		$tmpl->content .= '
 		<div id="contenttop_search">
-			<form action="index.php?p=search" class="ajaxform" data-target="#filecontent">
+			<form action="index.php?p=files&amp;sp=search" method="post" class="ajaxform" data-target="#filecontent">
 			
 				<input type="text" class="text iconinput" name="search" placeholder="Dateien suchen" /><input type="image" src="img/suchen.png" class="input_icon" />
 				
@@ -167,6 +171,325 @@ class FilesPage {
 		$tmpl->output();
 	}
 	
+	/**
+	 * Datei bearbeiten
+	 */
+	public static function editFile() {
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		if(!User::$login) {
+			Template::bakeError('Du bist nicht eingeloggt!');
+		}
+		
+		General::loadClass('Folder');
+		General::loadClass('Files');
+		
+		$file = Files::get($id);
+		
+		if(!$file) {
+			Template::bakeError('Die Datei wurde nicht gefunden!');
+		}
+		
+		if(!User::$admin AND $file->files_userID != User::$id) {
+			Template::bakeError('Du hast keine Berechtigung!');
+		}
+		
+		$folder = $file->files_folderID;
+		
+		
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Datei bearbeiten';
+		
+		$tmpl->content = '
+		
+		<div class="center">
+		
+			<h1>Datei bearbeiten</h1>';
+		
+		if(isset($_FILES['file'])) {
+			
+			$path = Folder::getFolderPath($folder);
+			$destination = './files/'.$path.$file->filesPath;
+			
+			// Fehlerbehandlung
+			if($_FILES['file']['error'] > 0) {
+				if($_FILES['file']['error'] != 4) {
+					$tmpl->content .= '
+						<div class="error">'.h($_FILES['file']['name']).': Fehler aufgetreten!</div>
+						<br />';
+				}
+			}
+			else {
+				// speichern und eintragen
+				move_uploaded_file($_FILES['file']['tmp_name'], $destination);
+				
+				MySQL::query("
+					UPDATE
+						".Config::mysql_prefix."files
+					SET
+						filesDate = ".time().",
+						filesSize = ".(int)$_FILES['file']['size']."
+					WHERE
+						filesID = ".$id."
+				", __FILE__, __LINE__);
+				
+				
+				$tmpl->content .= '
+					<div class="green">'.h($_FILES['file']['name']).' erfolgreich hochgeladen</div>
+					<br />';
+				
+			}
+		}
+		
+		// Name und Ordner ändern
+		if(isset($_POST['name'], $_POST['folder'])) {
+			
+			$folder = (int)$_POST['folder'];
+			
+			$file->filesName = $_POST['name'];
+			
+			MySQL::query("
+				UPDATE
+					".Config::mysql_prefix."files
+				SET
+					filesName = '".MySQL::escape($file->filesName)."',
+					files_folderID = ".$folder."
+				WHERE
+					filesID = ".$id."
+			", __FILE__, __LINE__);
+			
+			
+			// Datei verschieben
+			if($folder != $file->files_folderID) {
+				@rename(
+					'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
+					'./files/'.Folder::getFolderPath($folder).$file->filesPath
+				);
+				
+				$file->files_folderID = $folder;
+			}
+			
+		}
+		
+		$tmpl->content .= '
+			
+			<form action="index.php?p=files&amp;sp=edit&amp;id='.$id.'" method="post" enctype="multipart/form-data">
+				
+			<table class="formtable center">
+			<tr>
+				<td>Ordner</td>
+				<td>
+					<select name="folder" size="1">
+					'.Folder::dropdown($folder).'
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Angezeigter Name</td>
+				<td><input type="text" class="text" name="name" value="'.h($file->filesName).'" maxlength="100" style="width:100%" /></td>
+			</tr>
+			<tr>
+				<td>Datei neu hochladen <span class="italic">(optional)</span></td>
+				<td><input type="file" name="file" /></td>
+			</tr>
+			<tr>
+				<td class="center topspace" colspan="2">
+					<input type="submit" class="button wide" value="Speichern" />
+				</td>
+			</tr>
+			</table>
+			
+			</form>';
+		
+		if(count($_POST)) {
+			$tmpl->content .= '
+			<br />
+			<div>Die &Auml;nderungen wurden gespeichert.</div>
+			';
+		}
+		
+		$tmpl->content .= '
+			
+		</div>
+		';
+		
+		$tmpl->output();
+	}
+	
+	
+	/**
+	 * Datei löschen
+	 */
+	public static function deleteFile() {
+		
+		// Daten validieren
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		
+		if(!User::$login) {
+			Template::bakeError('Du bist nicht eingeloggt!');
+		}
+		
+		General::loadClass('Files');
+		General::loadClass('Folder');
+		
+		$file = Files::get($id);
+		
+		if($file) {
+			
+			// Berechtigung
+			if(!User::$admin AND $file->files_userID != User::$id) {
+				Template::bakeError('Du hast keine Berechtigung!');
+			}
+			
+			$path = './files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath;
+			
+			@unlink($path);
+			
+			MySQL::query("
+				DELETE FROM
+					".Config::mysql_prefix."files
+				WHERE
+					filesID = '".$id."'
+			", __FILE__, __LINE__);
+			
+		}
+		
+		$tmpl = new Template;
+		$tmpl->script = '$("#file'.$id.'").hide();';
+		$tmpl->output();
+	}
+	
+	
+	/**
+	 * Datei herunterladen
+	 */
+	public static function downloadFile() {
+		
+		// Daten validieren
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		
+		General::loadClass('Files');
+		General::loadClass('Folder');
+		
+		$file = Files::get($id);
+		
+		if(!$file) {
+			Template::bakeError('Die Datei wurde nicht gefunden!');
+		}
+		
+		// herunterladen
+		$path = './files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath;
+		
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="'.$file->filesName.'"');
+		echo file_get_contents($path);
+	}
+	
+	
+	/**
+	 * Suchfunktion
+	 */
+	public static function doSearch() {
+		
+		if(!isset($_POST['search'])) {
+			Template::bakeError('Daten unvollständig');
+		}
+		
+		General::loadClass('Folder');
+		General::loadClass('Files');
+		
+		$tmpl = new Template;
+		
+		$topfolder = User::getTopFolder();
+		
+		// alle zu durchsuchenden ermitteln
+		$folders = Folder::getchildren_ids($topfolder, true);
+		$folders[] = $topfolder;
+		
+		$conds = array(
+			"files_folderID IN(".implode(", ", $folders).")"
+		);
+		
+		// Suchfilter: irgendeines der Wörter kommt im angezeigten Namen vor
+		$search = explode(" ", $_POST['search']);
+		
+		$searchfilter = array();
+		
+		foreach($search as $s) {
+			if($s != '') {
+				$searchfilter[] = "filesName LIKE '%".MySQL::escape(MySQL::escape($s))."%'";
+			}
+		}
+		
+		if(count($searchfilter)) {
+			$conds[] = "(".implode(" OR ", $searchfilter).")";
+		}
+		
+		
+		$query = MySQL::query("
+			SELECT
+				".Config::mysql_prefix."files.*,
+				userName
+			FROM
+				".Config::mysql_prefix."files
+				LEFT JOIN ".Config::mysql_prefix."user
+					ON userID = files_userID
+			WHERE
+				".implode(" AND ", $conds)."
+			ORDER BY
+				filesDate DESC
+			LIMIT 250
+		", __FILE__, __LINE__);
+		
+		$treffer = MySQL::rows($query);
+		
+		if($treffer == 0) {
+			$tmpl->content = '
+				<br />
+				<div class="center">Die Suche lieferte keine Treffer.</div>
+			';
+		}
+		else {
+			$tmpl->content = '
+				<p>Die Suche lieferte '.$treffer.' Treffer:</p>
+				<div class="whitebox">';
+			
+			while($f = mysql_fetch_object($query)) {
+				
+				$path = Folder::getFolderPath($f->files_folderID);
+				
+				$tmpl->content .= self::getFileView(
+					$f,
+					$path,
+					Folder::getFolderPath($f->files_folderID, true).$f->filesName
+				);
+				
+			}
+			
+			$tmpl->content .= '
+				</div>
+			';
+		}
+		
+		$tmpl->output();
+	}
+	
 	
 	
 	
@@ -216,52 +539,14 @@ class FilesPage {
 		</div>';
 		}
 		
+		$path = Folder::getFolderPath($id);
 		
 		// Dateien im Ordner
 		General::loadClass('Files');
 		$files = Files::getall($id);
 		
 		foreach($files as $f) {
-			$content .= '
-		<div class="file">
-			<div class="file_left">
-				<a>
-					<img src="img/document-pdf.png" alt="" class="icon" />
-					'.h($f->filesName).'
-				</a>
-			</div>
-			<div class="file_right">
-				<div class="file_size">
-					Größe
-				</div>
-				
-				<div class="file_uploader">
-					Uploader
-				</div>
-				
-				<div class="file_datum">
-					Datum
-				</div>
-				
-				<div class="file_icons">
-					<a>
-						<img src="img/bearbeiten.png" class="icon hover" alt="bearbeiten" title="bearbeiten" />
-					</a>
-					<a>
-						<img src="img/loeschen.png" class="icon hover" alt="l&ouml;schen" title="l&ouml;schen" />
-					</a>
-					
-					<div class="file_iconspacer"></div>
-					
-					<a>
-						<img src="img/ansehen.png" class="icon hover" alt="ansehen" title="ansehen" />
-					</a>
-					<a>
-						<img src="img/download.png" class="icon hover" alt="speichern" title="speichern" />
-					</a>
-				</div>
-			</div>
-		</div>';
+			$content .= self::getFileView($f, $path, $f->filesName);
 		}
 		
 		if(!count($folders) AND !count($files)) {
@@ -271,6 +556,64 @@ class FilesPage {
 		</div>';
 		}
 		
+		
+		return $content;
+	}
+	
+	
+	/**
+	 * Datei-Anzeige erzeugen
+	 * @param object $f Datei-Datensatz
+	 * @param $path String Ordner-Pfad
+	 * @param $name Name, der angezeigt werden soll
+	 */
+	public static function getFileView($f, $path, $name) {
+		$content = '
+		<div class="file" id="file'.$f->filesID.'">
+			<div class="file_left">
+				<a href="files/'.$path.$f->filesPath.'" target="_blank">
+					<img src="img/'.Files::getIcon($f->filesPath).'" alt="" class="icon" />
+					'.h($name).'
+				</a>
+			</div>
+			<div class="file_right">
+				<div class="file_size">
+					'.Files::formatSize($f->filesSize).'
+				</div>
+				
+				<div class="file_uploader">
+					'.($f->userName ? h($f->userName) : '').'
+				</div>
+				
+				<div class="file_datum">
+					'.Files::formatDate($f->filesDate).'
+				</div>
+				
+				<div class="file_icons">';
+			
+			// bearbeiten und löschen
+			if(User::$admin OR (User::$login AND User::$id == $f->files_userID)) {
+				$content .= '
+					<a href="index.php?p=files&amp;sp=edit&amp;id='.$f->filesID.'" data-label="bearbeiten">
+						<img src="img/bearbeiten.png" class="icon hover" alt="bearbeiten" title="bearbeiten / neu hochladen" />
+					</a>
+					<a href="index.php?p=files&amp;sp=delete&amp;id='.$f->filesID.'" class="ajax" data-confirm="Willst du die Datei wirklich l&ouml;schen?" data-label="l&ouml;schen">
+						<img src="img/loeschen.png" class="icon hover" alt="l&ouml;schen" title="l&ouml;schen" />
+					</a>';
+			}
+			
+			$content .= '
+					<div class="file_iconspacer"></div>
+					
+					<a href="files/'.$path.$f->filesPath.'" target="_blank" data-label="ansehen">
+						<img src="img/ansehen.png" class="icon hover" alt="ansehen" title="ansehen" />
+					</a>
+					<a href="index.php?p=files&amp;sp=download&amp;id='.$f->filesID.'" data-label="speichern">
+						<img src="img/download.png" class="icon hover" alt="speichern" title="speichern" />
+					</a>
+				</div>
+			</div>
+		</div>';
 		
 		return $content;
 	}

@@ -28,11 +28,12 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `fmg_files` (
   `filesID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `filesName` varchar(50) NOT NULL,
-  `filesPath` varchar(50) NOT NULL,
+  `filesName` varchar(100) NOT NULL,
+  `filesPath` varchar(100) NOT NULL,
   `files_folderID` int(10) unsigned NOT NULL,
   `files_userID` int(10) unsigned NOT NULL,
   `filesDate` int(10) unsigned NOT NULL,
+  `filesSize` int(10) unsigned NOT NULL,
   `filesThumbnail` varchar(50) NOT NULL,
   PRIMARY KEY (`filesID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -190,6 +190,7 @@ select, .text {
 .formtable td {
 	padding:6px;
 	vertical-align:top;
+	text-align:left;
 }
 
 .formtable td.topspace {
@@ -262,9 +263,9 @@ label {
 	opacity:0.75;
 	filter:alpha(opacity=75);
 	
-	-moz-transition:all 0.15s;
-	-webkit-transition:all 0.15s;
-	transition:all 0.15s;
+	-moz-transition:opacity 0.15s;
+	-webkit-transition:opacity 0.15s;
+	transition:opacity 0.15s;
 }
 
 .file .hover:hover {
@@ -416,6 +417,56 @@ label {
 	
 	.file_size, .file_uploader, .file_datum, .file_icons {
 		display:none;
+	}
+	
+	/* mobile file click */
+	.file.active {
+		background-color:#e6e6e6;
+		padding-top:0.5em;
+		padding-bottom:0.75em;
+	}
+	
+	.file.active .file_right:before {
+		display:block;
+		content: ' ';
+		clear:both;
+	}
+	
+	.file.active .file_right {
+		float:none;
+		padding-left:30px;
+	}
+	
+	.file.active .file_icons:before {
+		content: ' ';
+		display:block;
+		clear:both;
+	}
+	
+	.file.active .file_icons {
+		float:none !important;
+		width:auto;
+		text-align:left;
+		visibility:visible;
+	}
+	
+	.file.active .file_iconspacer {
+		display:block;
+	}
+	
+	.file.active .file_icons a {
+		white-space:nowrap;
+	}
+	
+	.file.active .file_icons a:after {
+		display:inline-block;
+		content: attr(data-label);
+		width:75px;
+	}
+	
+	.file.active .file_right > div {
+		display:block;
+		float:left;
 	}
 	
 	h1 {
