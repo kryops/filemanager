@@ -262,9 +262,15 @@ label {
 	opacity:0.75;
 	filter:alpha(opacity=75);
 	
-	-moz-transition:opacity 0.15s;
-	-webkit-transition:opacity 0.15s;
-	transition:opacity 0.15s;
+	-moz-transition:all 0.15s;
+	-webkit-transition:all 0.15s;
+	transition:all 0.15s;
+}
+
+.file .hover:hover {
+	-moz-transform:scale(1.25);
+	-webkit-transform:scale(1.25);
+	transform:scale(1.25);
 }
 
 .hover:hover {
@@ -341,6 +347,7 @@ label {
 .emptyfolder {
 	color:#808080;
 	font-size:75%;
+	line-height:2em;
 }
 
 /* small and mobile design */

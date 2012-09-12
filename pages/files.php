@@ -23,13 +23,23 @@ class FilesPage {
 	public static $toggle = false;
 	
 	
+	/*
+	 * Seiten und Aktionen
+	 */
+	
 	/**
 	 * Dateiübersicht anzeigen
 	 */
 	public static function displayOverview() {
 		
+		// Ordner laden
 		General::loadClass('Folder');
 		Folder::getall();
+		
+		// Dateien laden
+		General::loadClass('Files');
+		Files::load(self::getToggle());
+		
 		
 		$tmpl = new Template;
 		
@@ -147,6 +157,9 @@ class FilesPage {
 		
 		// Ordner erstmalig aufklappen
 		if(isset($_GET['load'])) {
+			General::loadClass('Files');
+			Files::load(self::$toggle);
+			
 			$tmpl->content = self::getFolderView($id);
 		}
 		
@@ -157,7 +170,9 @@ class FilesPage {
 	
 	
 	
-	
+	/*
+	 * Hilfsfunktionen
+	 */
 	
 	
 	
@@ -172,7 +187,7 @@ class FilesPage {
 		// aufgeklappte Ordner ermitteln
 		self::getToggle();
 		
-		// Ordner durchgehen
+		// Unterordner durchgehen
 		$folders = Folder::getchildren($id);
 		
 		foreach($folders as $f) {
@@ -202,7 +217,54 @@ class FilesPage {
 		}
 		
 		
-		if(!count($folders)) {
+		// Dateien im Ordner
+		General::loadClass('Files');
+		$files = Files::getall($id);
+		
+		foreach($files as $f) {
+			$content .= '
+		<div class="file">
+			<div class="file_left">
+				<a>
+					<img src="img/document-pdf.png" alt="" class="icon" />
+					'.h($f->filesName).'
+				</a>
+			</div>
+			<div class="file_right">
+				<div class="file_size">
+					Größe
+				</div>
+				
+				<div class="file_uploader">
+					Uploader
+				</div>
+				
+				<div class="file_datum">
+					Datum
+				</div>
+				
+				<div class="file_icons">
+					<a>
+						<img src="img/bearbeiten.png" class="icon hover" alt="bearbeiten" title="bearbeiten" />
+					</a>
+					<a>
+						<img src="img/loeschen.png" class="icon hover" alt="l&ouml;schen" title="l&ouml;schen" />
+					</a>
+					
+					<div class="file_iconspacer"></div>
+					
+					<a>
+						<img src="img/ansehen.png" class="icon hover" alt="ansehen" title="ansehen" />
+					</a>
+					<a>
+						<img src="img/download.png" class="icon hover" alt="speichern" title="speichern" />
+					</a>
+				</div>
+			</div>
+		</div>';
+		}
+		
+		if(!count($folders) AND !count($files)) {
 			$content .= '
 		<div class="emptyfolder italic">
 			Der Odner ist leer.
