@@ -254,6 +254,10 @@ label {
 	margin-bottom:2em;
 }
 
+.whitebox_icon {
+	float:right;
+}
+
 .icon {
 	width:16px;
 	height:16px;

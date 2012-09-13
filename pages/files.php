@@ -19,7 +19,8 @@ class FilesPage {
 		'edit' => 'editFile',
 		'delete' => 'deleteFile',
 		'download' => 'downloadFile',
-		'search' => 'doSearch'
+		'search' => 'doSearch',
+		'resetnew' => 'resetNewFiles'
 	);
 	
 	
@@ -47,7 +48,68 @@ class FilesPage {
 		
 		$tmpl = new Template;
 		
-		$tmpl->content = '
+		// neue Dateien seit dem letzten Besuch
+		if(isset($_SESSION[Config::session_prefix.'lastvisit']) AND $_SESSION[Config::session_prefix.'lastvisit']) {
+			
+			$lastvisit = (int)$_SESSION[Config::session_prefix.'lastvisit'];
+			
+			$conds = array(
+				"filesDate > ".$lastvisit
+			);
+			
+			if(User::$login) {
+				$conds[] = "files_userID != ".User::$id;
+			}
+			
+			$query = MySQL::query("
+				SELECT
+					".Config::mysql_prefix."files.*,
+					userName
+				FROM
+					".Config::mysql_prefix."files
+					LEFT JOIN ".Config::mysql_prefix."user
+						ON userID = files_userID
+				WHERE
+					".implode(" AND ", $conds)."
+				ORDER BY
+					filesDate DESC
+				LIMIT 250
+			", __FILE__, __LINE__);
+			
+			$treffer = MySQL::rows($query);
+			
+			if($treffer) {
+				$tmpl->content = '
+					<div class="whitebox" id="newfiles">
+						<div class="whitebox_icon">
+							<a href="index.php?p=files&amp;sp=resetnew" class="ajax" title="ausblenden">
+								<img src="img/loeschen.png" alt="ausblenden" class="icon hover" />
+							</a>
+						</div>
+						<p>'.$treffer.' neue Datei'.($treffer == 1 ? '' : 'en').' seit deinem letzten Besuch:</p>';
+				
+				while($f = mysql_fetch_object($query)) {
+					
+					$path = Folder::getFolderPath($f->files_folderID);
+					
+					$tmpl->content .= self::getFileView(
+						$f,
+						$path,
+						Folder::getFolderPath($f->files_folderID, true).$f->filesName
+					);
+					
+				}
+				
+				$tmpl->content .= '
+					</div>
+				';
+			}
+			
+		}
+		
+		
+		
+		$tmpl->content .= '
 	<div id="contenttop">';
 		
 		if(User::$login) {
@@ -365,9 +427,17 @@ class FilesPage {
 			
 		}
 		
-		$tmpl = new Template;
-		$tmpl->script = '$("#file'.$id.'").hide();';
-		$tmpl->output();
+		// mit Ajax die Datei entfernen
+		if(isset($_GET['ajax'])) {
+			$tmpl = new Template;
+			$tmpl->script = '$("#file'.$id.'").remove();';
+			$tmpl->output();
+		}
+		
+		// noscript-Variante
+		else {
+			self::displayOverview();
+		}
 	}
 	
 	
@@ -490,6 +560,29 @@ class FilesPage {
 		$tmpl->output();
 	}
 	
+	
+	/**
+	 * Anzeige neuer Dateien seit dem letzten Besuch ausblenden
+	 */
+	public static function resetNewFiles() {
+		
+		// letzten Besuch auf den jetzigen Zeitpunkt setzen
+		if(isset($_SESSION[Config::session_prefix.'lastvisit'])) {
+			$_SESSION[Config::session_prefix.'lastvisit'] = time();
+		}
+		
+		// Fenster ausblenden
+		if(isset($_GET['ajax'])) {
+			$tmpl = new Template;
+			$tmpl->script = '$("#newfiles").fadeOut(400);';
+			$tmpl->output();
+		}
+		
+		// noscript: Übersicht anzeigen
+		else {
+			self::displayOverview();
+		}
+	}
 	
 	
 	
