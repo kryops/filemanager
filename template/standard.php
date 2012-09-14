@@ -129,7 +129,16 @@ header("Content-Type: text/html");
 <img id="ajaxload" src="img/ajax.gif" alt="laden..." />
 
 <script src="js/jquery.js"></script>
+<script src="js/jquery-ui.js"></script>
 <script src="js/general.js"></script>
+
+<?php
+if($this->script != '') {
+	echo '<script>
+'.$this->script.'
+</script>'; 
+}
+?>
 
 <!-- <?php echo General::getBenchmark(true) ?>s<?php
 

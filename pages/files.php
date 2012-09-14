@@ -18,6 +18,7 @@ class FilesPage {
 		'toggle' => 'saveToggle',
 		'edit' => 'editFile',
 		'delete' => 'deleteFile',
+		'move' => 'moveFile',
 		'download' => 'downloadFile',
 		'search' => 'doSearch',
 		'resetnew' => 'resetNewFiles'
@@ -200,26 +201,31 @@ class FilesPage {
 			$toggle = $_SESSION[Config::session_prefix.'toggle'];
 		}
 		
+		if(self::$toggle === false) {
+			self::$toggle = $toggle;
+		}
 		
-		// aufgeklappte Ordner speichern
-		if(!$_POST['toggle']) {
-			foreach($toggle as $key=>$val) {
-				if($val == $id) {
-					unset($toggle[$key]);
+		
+		if($_POST['toggle'] != -1) {
+			// aufgeklappte Ordner speichern
+			if(!$_POST['toggle']) {
+				foreach($toggle as $key=>$val) {
+					if($val == $id) {
+						unset($toggle[$key]);
+					}
 				}
 			}
+			else {
+				$toggle[] = $id;
+				$toggle = array_unique(array_merge(
+					$toggle,
+					Folder::getparents($id)
+				));
+			}
+			
+			$_SESSION[Config::session_prefix.'toggle'] = $toggle;
+			self::$toggle = $toggle;
 		}
-		else {
-			$toggle[] = $id;
-			$toggle = array_unique(array_merge(
-				$toggle,
-				Folder::getparents($id)
-			));
-		}
-		
-		$_SESSION[Config::session_prefix.'toggle'] = $toggle;
-		self::$toggle = $toggle;
-		
 		
 		// Ordner erstmalig aufklappen
 		if(isset($_GET['load'])) {
@@ -229,6 +235,10 @@ class FilesPage {
 			$tmpl->content = self::getFolderView($id);
 		}
 		
+		// Drag & Drop-Funktionalität erhalten
+		$tmpl->script = '
+		ajaxController.addDragDrop("#folder'.$id.'");
+		';
 		
 		$tmpl->output();
 	}
@@ -316,26 +326,49 @@ class FilesPage {
 			
 			$file->filesName = $_POST['name'];
 			
+			$path = Folder::getFolderPath($folder);
+			$name_new = $file->filesPath;
+			$name_new2 = $name_new;
+			
+			$destination = './files/'.$path.$name_new;
+			
+			$i = 1;
+			
+			if($folder != $file->files_folderID) {
+				
+				// Datei schon vorhanden
+				while(file_exists($destination)) {
+					
+					if(strlen($name_new > 96)) {
+						$name_new = substr($name_new, -96, 96);
+						$i++;
+					}
+					
+					$name_new2 = $i.$name_new;
+					$i++;
+					
+					$destination = './files/'.$path.$name_new2;
+				}
+				
+			}
+			
+			// Datei verschieben
+			@rename(
+				'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
+				$destination
+			);
+			
+			// aktualisieren
 			MySQL::query("
 				UPDATE
 					".Config::mysql_prefix."files
 				SET
-					filesName = '".MySQL::escape($file->filesName)."',
-					files_folderID = ".$folder."
+					filesName = '".MySQL::escape($_POST['name'])."',
+					files_folderID = ".$folder.",
+					filesPath = '".MySQL::escape($name_new2)."'
 				WHERE
 					filesID = ".$id."
 			", __FILE__, __LINE__);
-			
-			
-			// Datei verschieben
-			if($folder != $file->files_folderID) {
-				@rename(
-					'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
-					'./files/'.Folder::getFolderPath($folder).$file->filesPath
-				);
-				
-				$file->files_folderID = $folder;
-			}
 			
 		}
 		
@@ -373,6 +406,10 @@ class FilesPage {
 			$tmpl->content .= '
 			<br />
 			<div>Die &Auml;nderungen wurden gespeichert.</div>
+			
+			<script>
+			document.location.href = "index.php";
+			</script>
 			';
 		}
 		
@@ -438,6 +475,88 @@ class FilesPage {
 		else {
 			self::displayOverview();
 		}
+	}
+	
+	
+	/**
+	 * Datei verschieben
+	 */
+	public static function moveFile() {
+		
+		if(!isset($_POST['id'], $_POST['target'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		if(!User::$login) {
+			Template::bakeError('Du bist nicht eingeloggt!');
+		}
+		
+		$id = (int)$_POST['id'];
+		$target = (int)$_POST['target'];
+		
+		General::loadClass('Folder');
+		General::loadClass('Files');
+		
+		
+		$file = Files::get($id);
+		
+		// Berechtigung
+		if(!User::$admin AND $file->files_userID != User::$id) {
+			Template::bakeError('Du hast keine Berechtigung!');
+		}
+		
+		if($target != $file->files_folderID) {
+			
+			$path = Folder::getFolderPath($target);
+			$name_new = $file->filesPath;
+			$name_new2 = $name_new;
+			
+			$destination = './files/'.$path.$name_new;
+			
+			$i = 1;
+			
+			// Datei schon vorhanden
+			while(file_exists($destination)) {
+				
+				if(strlen($name_new > 96)) {
+					$name_new = substr($name_new, -96, 96);
+					$i++;
+				}
+				
+				$name_new2 = $i.$name_new;
+				$i++;
+				
+				$destination = './files/'.$path.$name_new2;
+			}
+			
+			MySQL::query("
+				UPDATE
+					".Config::mysql_prefix."files
+				SET
+					filesPath = '".MySQL::escape($name_new2)."',
+					files_folderID = ".$target."
+				WHERE
+					filesID = ".$id."
+			", __FILE__, __LINE__);
+			
+			
+			// Datei verschieben
+			@rename(
+				'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
+				$destination
+			);
+		
+		}
+		
+		$tmpl = new Template;
+		
+		$tmpl->script = '
+		if($("#folder'.$target.'").data("loaded")) {
+			ajaxController.call("index.php?p=files&sp=toggle&load", $("#folder'.$target.'"), {"id":'.$target.', "toggle":-1}, false);
+		}
+		';
+		
+		$tmpl->output();
 	}
 	
 	
@@ -611,7 +730,7 @@ class FilesPage {
 			$toggle = in_array($f->folderID, self::$toggle);
 			
 			$content .= '
-		<div class="folder">
+		<div class="folder" data-id="'.$f->folderID.'">
 			<div class="file_left">
 				<a href="index.php?p=files&amp;toggle='.$f->folderID.'" class="folder_toggle" data-id="'.$f->folderID.'" data-toggle="'.($toggle ? '1' : '0').'">
 					<img src="img/ordner'.($toggle ? '-offen' : '').'.png" alt="" class="icon" />
@@ -662,9 +781,15 @@ class FilesPage {
 	 */
 	public static function getFileView($f, $path, $name) {
 		$content = '
-		<div class="file" id="file'.$f->filesID.'">
+		<div class="file" id="file'.$f->filesID.'" data-id="'.$f->filesID.'">
 			<div class="file_left">
-				<a href="files/'.$path.$f->filesPath.'" target="_blank">
+				<a href="files/'.$path.$f->filesPath.'" target="_blank" data-id="'.$f->filesID.'"';
+		
+		if(User::$admin OR (User::$login AND User::$id == $f->files_userID)) {
+			$content .= ' class="draggable"';
+		}
+		
+		$content .= '>
 					<img src="img/'.Files::getIcon($f->filesPath).'" alt="" class="icon" />
 					'.h($name).'
 				</a>

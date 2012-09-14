@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `fmg_files` (
   `files_userID` int(10) unsigned NOT NULL,
   `filesDate` int(10) unsigned NOT NULL,
   `filesSize` int(10) unsigned NOT NULL,
-  `filesThumbnail` varchar(50) NOT NULL,
+  `filesThumbnail` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`filesID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

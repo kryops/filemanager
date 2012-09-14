@@ -295,6 +295,10 @@ label {
 	padding:3px 4px;
 }
 
+.folder.droppable {
+	background-color:#fafafa;
+}
+
 .file_left {
 	float:left;
 }

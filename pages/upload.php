@@ -41,6 +41,7 @@ class UploadPage {
 				else {
 					
 					$name_new = Files::cleanFileName($name);
+					$name_new2 = $name_new;
 					
 					$destination = './files/'.$path.$name_new;
 					
@@ -60,6 +61,8 @@ class UploadPage {
 						$destination = './files/'.$path.$name_new2;
 					}
 					
+					
+					
 					// speichern und eintragen
 					move_uploaded_file($_FILES['file']['tmp_name'][$key], $destination);
 					
@@ -68,7 +71,7 @@ class UploadPage {
 							".Config::mysql_prefix."files
 						SET
 							filesName = '".MySQL::escape($name)."',
-							filesPath = '".MySQL::escape($name_new)."',	
+							filesPath = '".MySQL::escape($name_new2)."',	
 							files_folderID = ".$folder.",
 							files_userID = ".User::$id.",
 							filesDate = ".time().",

@@ -149,6 +149,32 @@ var ajaxController = {
 		
 		// normales Abschicken verhindern
 		e.preventDefault();
+	},
+	
+	/**
+	 * Drag & Drop-Funktionalität für Dateien und Ordner
+	 */
+	addDragDrop : function(selector) {
+		
+		if(typeof(selector) == 'undefined') {
+			selector = '';
+		}
+		
+		
+		$(selector + " .draggable").draggable({
+			helper: "clone"
+		});
+		
+		$(selector + " .folder").droppable({
+			
+			hoverClass: "droppable",
+			
+			drop: function(event, ui) {
+				ajaxController.call('index.php?p=files&sp=move', false, {'id' : ui.draggable.data('id'), 'target' : $(this).data('id')}, false);
+				ui.draggable.parents('.file').remove();
+			}
+		});
+		
 	}
 	
 }
@@ -245,5 +271,8 @@ $(document).ready(function() {
 			e.preventDefault();
 		}
 	});
+	
+	// Drag & Drop
+	ajaxController.addDragDrop();
 	
 });
