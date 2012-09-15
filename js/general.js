@@ -275,4 +275,28 @@ $(document).ready(function() {
 	// Drag & Drop
 	ajaxController.addDragDrop();
 	
+	// Thumbnail-Anzeige
+	$(document).on('mouseenter', '.thumbnail', function() {
+		if($(this).data('thumbnail') != null) {
+			$('#thumbnail').html('<img src="'+$(this).data('thumbnail')+'" />');
+			$('#thumbnail').stop(true,true).fadeIn(100);
+		}
+	}).on('mouseleave', '.thumbnail', function() {
+		$('#thumbnail').fadeOut(100);
+	}).on('mousemove', function(e) {
+		$('#thumbnail').css({
+			top: e.pageY+5,
+			left: e.pageX+20,
+			right: 'auto'
+		});
+		
+		var margin = $(window).width()-e.pageX;
+		if(margin < 130) {
+			$('#thumbnail').css({
+				left: 'auto',
+				right: margin+10
+			});
+		}
+	});
+	
 });

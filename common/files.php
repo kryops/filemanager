@@ -342,6 +342,100 @@ class Files {
 		return $filename;
 	}
 	
+	
+	/**
+	 * Thumbnail zu einer Datei erzeugen
+	 * @param int $id
+	 * @param string $filename gespeicherter Dateiname (filesPath) @default false
+	 * @param stirng $path gesamter Dateipfad @default false
+	 */
+	public static function createThumbnail($id, $filename=false, $path=false) {
+		
+		// Dateitypen den bilderzeugenden Funktionen zuordnen
+		$functions = array(
+			'jpg' => 'imagecreatefromjpeg',
+			'jpeg' => 'imagecreatefromjpeg',
+			'png' => 'imagecreatefrompng',
+			'gif' => 'imagecreatefromgif'
+		);
+		
+		$maxwidth = 100;
+		$maxheight = 100;
+		
+		
+		$id = (int)$id;
+		
+		$thumbnail = 0;
+		
+		// Dateiname und Pfad nicht übergeben
+		if($filename === false OR $path === false) {
+			
+			$file = Files::get($id);
+			
+			if(!$file) {
+				return false;
+			}
+			
+			$filename = $file->filesPath;
+			
+			$path = './files/'.Folder::getFolderPath($file->files_folderID).$filename;
+			
+		}
+		
+		$filetype = self::getFileType($filename);
+		
+		
+		// Erlaubter Dateityp
+		if(isset($functions[$filetype])) {
+			if($size = @getimagesize($path)) {
+				
+				// Originalbild als Thumbnail verwenden
+				if($size[0] <= $maxwidth AND $size[1] <= $maxheight) {
+					$thumbnail = 2;
+				}
+				
+				// Bild verkleinern und Thumbnail speichern
+				else {
+					$new_width = $size[0];
+					$new_height = $size[1];
+					
+					if($new_width > $maxwidth) {
+						$new_width = $maxwidth;
+						$new_height = round(($maxwidth/$size[0])*$size[1]);
+					}
+					
+					if($new_height > $maxheight) {
+						$new_height = $maxheight;
+						$new_width = round(($maxheight/$size[1])*$size[0]);
+					}
+					
+					// erzeugen und speichern
+					$pic = $functions[$filetype]($path);
+					$pic_new = imagecreatetruecolor($new_width, $new_height);
+					$weiss = ImageColorAllocate($pic_new, 255, 255, 255);
+					imagefill($pic_new, 0, 0, $weiss);
+					imagecopyresampled($pic_new, $pic, 0, 0, 0, 0, $new_width, $new_height, $size[0], $size[1]);
+					
+					imagejpeg($pic_new, './thumbnails/'.$id.'.jpg', 85);
+					
+					$thumbnail = 1;
+				}
+			}
+		}
+		
+		
+		// MySQL-Datensatz aktualisieren
+		MySQL::query("
+			UPDATE
+				".Config::mysql_prefix."files
+			SET
+				filesThumbnail = ".$thumbnail."
+			WHERE
+				filesID = ".$id."
+		", __FILE__, __LINE__);
+		
+	}
+	
 }
 
 ?>

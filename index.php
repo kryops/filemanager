@@ -25,6 +25,8 @@ if(!@include './config/config.php') {
 	Kopiere die Datei config/config-sample.php, erstelle daraus die config/config.php und passe dort alle wichtigen Einstellungen an.
 	<br />
 	Den Import f&uuml;r die MySQL-Datenbank findest du im Ordner sql.
+	<br /><br />
+	Die Ordner files und thumbnails ben&ouml;tigen PHP-Schreibrechte.
 	
 	';
 	

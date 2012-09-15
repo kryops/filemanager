@@ -241,6 +241,22 @@ label {
 	clear:both;
 }
 
+#thumbnail {
+	position:absolute;
+	display:none;
+	background-color:#fff;
+	border:1px solid #c8c8c8;
+	padding:4px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	-o-border-radius:5px;
+	border-radius:5px;
+}
+
+#thumbnail > img {
+	display:block;
+}
+
 .whitebox {
 	border:1px solid #c8c8c8;
 	background-color:#fff;
@@ -320,7 +336,7 @@ label {
 }
 
 .file_datum {
-	width:110px;	
+	width:90px;	
 }
 
 .file_iconspacer {
@@ -379,7 +395,7 @@ label {
 	}
 	
 	.file_datum {
-		width:100px;
+		width:65px;
 	}
 	
 }

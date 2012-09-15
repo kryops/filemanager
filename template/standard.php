@@ -126,6 +126,8 @@ header("Content-Type: text/html");
 
 </div>
 
+<div id="thumbnail"></div>
+
 <img id="ajaxload" src="img/ajax.gif" alt="laden..." />
 
 <script src="js/jquery.js"></script>

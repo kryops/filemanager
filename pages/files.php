@@ -301,6 +301,8 @@ class FilesPage {
 				// speichern und eintragen
 				move_uploaded_file($_FILES['file']['tmp_name'], $destination);
 				
+				Files::createThumbnail($id, $file->filesPath, $destination);
+				
 				MySQL::query("
 					UPDATE
 						".Config::mysql_prefix."files
@@ -454,6 +456,7 @@ class FilesPage {
 			$path = './files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath;
 			
 			@unlink($path);
+			@unlink('./thumbnails/'.$id.'.jpg');
 			
 			MySQL::query("
 				DELETE FROM
@@ -781,7 +784,31 @@ class FilesPage {
 	 */
 	public static function getFileView($f, $path, $name) {
 		$content = '
-		<div class="file" id="file'.$f->filesID.'" data-id="'.$f->filesID.'">
+		<div class="file';
+		
+		if($f->filesThumbnail) {
+			$content .= ' thumbnail';
+		}
+		
+		$content .= '" id="file'.$f->filesID.'" data-id="'.$f->filesID.'"';
+		
+		if($f->filesThumbnail) {
+			
+			$content .= ' data-thumbnail="';
+			
+			// gespeicherter Thumbnail
+			if($f->filesThumbnail == 1) {
+				$content .= 'thumbnails/'.$f->filesID.'.jpg';
+			}
+			// Original-Bild
+			else {
+				$content .= 'files/'.$path.$f->filesPath;
+			}
+			
+			$content .= '"';
+		}
+		
+		$content .= '>
 			<div class="file_left">
 				<a href="files/'.$path.$f->filesPath.'" target="_blank" data-id="'.$f->filesID.'"';
 		
