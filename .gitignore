@@ -4,3 +4,4 @@ __design
 Thumbs.db
 .buildpath
 files/*/*
+config/config.php
