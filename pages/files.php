@@ -784,6 +784,9 @@ class FilesPage {
 	 * @param $name Name, der angezeigt werden soll
 	 */
 	public static function getFileView($f, $path, $name) {
+		
+		$path_url = urlencode(utf8_decode($path.$f->filesPath));
+		
 		$content = '
 		<div class="file';
 		
@@ -803,7 +806,7 @@ class FilesPage {
 			}
 			// Original-Bild
 			else {
-				$content .= 'files/'.$path.$f->filesPath;
+				$content .= 'files/'.$path_url;
 			}
 			
 			$content .= '"';
@@ -811,7 +814,7 @@ class FilesPage {
 		
 		$content .= '>
 			<div class="file_left">
-				<a href="files/'.$path.$f->filesPath.'" target="_blank" data-id="'.$f->filesID.'"';
+				<a href="files/'.$path_url.'" target="_blank" data-id="'.$f->filesID.'"';
 		
 		if(User::$admin OR (User::$login AND User::$id == $f->files_userID)) {
 			$content .= ' class="draggable"';
