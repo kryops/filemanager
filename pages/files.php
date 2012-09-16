@@ -786,10 +786,10 @@ class FilesPage {
 	public static function getFileView($f, $path, $name) {
 		
 		if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			$path_url = $path.urlencode($f->filesPath);
+			$path_url = $path.rawurlencode($f->filesPath);
 		}
 		else {
-			$path_url = $path.urlencode(utf8_decode($f->filesPath));
+			$path_url = $path.rawurlencode(utf8_decode($f->filesPath));
 		}
 		
 		$content = '

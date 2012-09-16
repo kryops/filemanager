@@ -340,7 +340,7 @@ class Folder {
 				$f->folderPath = utf8_decode($f->folderPath);
 			}
 			
-			$folders[$key] = ($names ? $f->folderName : urlencode($f->folderPath)).'/';
+			$folders[$key] = ($names ? $f->folderName : rawurlencode($f->folderPath)).'/';
 		}
 		
 		return implode('', $folders);
