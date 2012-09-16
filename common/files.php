@@ -91,12 +91,17 @@ class Files {
 	
 	public static $forbidden_files = array(
 		'php',
-		'html'
+		'htm',
+		'html',
+		'htaccess',
+		'htusers',
+		'htpasswd',
+		'htgroups'
 	);
 	
 	
 	/**
-	 * Array der Ordner, von welchen schon 
+	 * Array der Ordner, von welchen schon Dateien geladen wuden
 	 */
 	public static $files_loaded = array();
 	
@@ -200,11 +205,10 @@ class Files {
 		}
 		else {
 			self::$files_loaded = true;
+			
+			// zurücksetzen, wenn alle geladen werden
+			self::$files = array();
 		}
-		
-		
-		// zurücksetzen, wenn alle geladen werden
-		self::$files = array();
 		
 		
 		$sql = "
@@ -337,6 +341,18 @@ class Files {
 		// Länge auf 100 begrenzt
 		if(strlen($filename) > 100) {
 			$filename = substr($filename, -100, 100);
+		}
+		
+		// keine Datei darf mit einem Punkt beginnen
+		if(strpos($filename, '.') !== false) {
+			$fn = explode('.', $filename);
+			if($fn[0] == '') {
+				$filename = '_'.$filename;
+			}
+		}
+		// gar kein Dateiname mehr übrig
+		else if(strlen($filename) == 0) {
+			$filename = '_';
 		}
 		
 		return $filename;

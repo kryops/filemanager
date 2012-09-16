@@ -137,7 +137,8 @@ class FilesPage {
 				<input type="hidden" name="p" value="files" />
 				Anzeigen:
 				
-				<select id="select_topfolder" name="top" size="1">';
+				<select id="select_topfolder" name="top" size="1">
+					<option value="0">- alle -</option>';
 		
 		// Wurzel-Ordner anzeigen
 		$topfolder = User::getTopFolder();

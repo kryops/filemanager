@@ -287,6 +287,9 @@ class Folder {
 			self::getall();
 		}
 		
+		// Wurzel-Ordner
+		$out .= '<option value="0">- Hauptordner -</option>';
+		
 		foreach(self::$folder as $row) {
 			$out .= '<option value="'.$row->folderID.'"';
 			
