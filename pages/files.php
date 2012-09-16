@@ -91,7 +91,7 @@ class FilesPage {
 				
 				while($f = mysql_fetch_object($query)) {
 					
-					$path = Folder::getFolderPath($f->files_folderID);
+					$path = Folder::getFolderPath($f->files_folderID, false, true);
 					
 					$tmpl->content .= self::getFileView(
 						$f,
@@ -454,7 +454,7 @@ class FilesPage {
 				Template::bakeError('Du hast keine Berechtigung!');
 			}
 			
-			$path = './files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath;
+			$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
 			
 			@unlink($path);
 			@unlink('./thumbnails/'.$id.'.jpg');
@@ -546,7 +546,7 @@ class FilesPage {
 			
 			// Datei verschieben
 			@rename(
-				'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
+				utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath),
 				$destination
 			);
 		
@@ -587,7 +587,7 @@ class FilesPage {
 		}
 		
 		// herunterladen
-		$path = './files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath;
+		$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
 		
 		header('Content-Type: application/octet-stream');
 		header('Content-Disposition: attachment; filename="'.$file->filesName.'"');
@@ -665,7 +665,7 @@ class FilesPage {
 			
 			while($f = mysql_fetch_object($query)) {
 				
-				$path = Folder::getFolderPath($f->files_folderID);
+				$path = Folder::getFolderPath($f->files_folderID, false, true);
 				
 				$tmpl->content .= self::getFileView(
 					$f,
@@ -755,7 +755,7 @@ class FilesPage {
 		</div>';
 		}
 		
-		$path = Folder::getFolderPath($id);
+		$path = Folder::getFolderPath($id, false, true);
 		
 		// Dateien im Ordner
 		General::loadClass('Files');

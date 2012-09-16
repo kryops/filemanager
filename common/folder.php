@@ -321,9 +321,10 @@ class Folder {
 	 * Vollständigen Pfad eines Ordners ermitteln
 	 * @param int $id Ordner-ID
 	 * @param bool $names Anzeigenamen verwenden @default false
+	 * @param bool $encode Pfade URL-enkodieren @default false
 	 * @return string Pfad (mit abschließendem /)
 	 */
-	public static function getFolderPath($id, $names=false) {
+	public static function getFolderPath($id, $names=false, $encode=false) {
 		
 		$folders = self::getparents($id, true);
 		
@@ -340,7 +341,14 @@ class Folder {
 				$f->folderPath = utf8_decode($f->folderPath);
 			}
 			
-			$folders[$key] = ($names ? $f->folderName : rawurlencode($f->folderPath)).'/';
+			if($encode) {
+				$path = rawurlencode($f->folderPath);
+			}
+			else {
+				$path = $f->folderPath;
+			}
+			
+			$folders[$key] = ($names ? $f->folderName : $path).'/';
 		}
 		
 		return implode('', $folders);
