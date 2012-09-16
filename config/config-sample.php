@@ -14,7 +14,7 @@ class Config {
 	
 	const name = 'TINF11B Dateimanager';
 	
-	const folder_top = 1;
+	const folder_top = 0;
 	
 	const debug = true;
 	

@@ -341,6 +341,39 @@ class Folder {
 		return implode('', $folders);
 	}
 	
+	
+	/**
+	 * Ordner im Dateisystem löschen
+	 * @param string $path
+	 */
+	public static function deleteFolderPath($path) {
+		
+		// nur gültige Ordner löschen
+		if(strpos($path, 'files/') === false OR strpos($path, '..') !== false) {
+			return false;
+		}
+		
+		
+		if($dir = @opendir($path)) {
+			while($file = readdir($dir)) {
+				if($file != '.' AND $file != '..') {
+					
+					// Unterordner rekursiv löschen
+					if(is_dir($path.$file)) {
+						self::deleteFolderPath($path.$file);
+					}
+					else {
+						@unlink($path.$file);
+					}
+					
+				}
+			}
+		}
+		
+		@unlink($path);
+		
+	}
+	
 }
 
 ?>

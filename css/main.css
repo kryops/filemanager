@@ -60,6 +60,14 @@ h1 {
 	margin-bottom:1em;
 }
 
+h2 {
+	font-family:Trebuchet MS, Sans;
+	font-size:125%;
+	font-weight:normal;
+	margin:0;
+	margin-bottom:1em;
+}
+
 /* layout */
 #wrapper {
 	width:980px;
