@@ -335,7 +335,12 @@ class Folder {
 				unset($folders[$key]);
 				continue;
 			}
-			$folders[$key] = ($names ? $f->folderName : $f->folderPath).'/';
+			
+			if(strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+				$f->folderPath = utf8_decode($f->folderPath);
+			}
+			
+			$folders[$key] = ($names ? $f->folderName : urlencode($f->folderPath)).'/';
 		}
 		
 		return implode('', $folders);

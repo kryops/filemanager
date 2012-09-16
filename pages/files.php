@@ -785,7 +785,12 @@ class FilesPage {
 	 */
 	public static function getFileView($f, $path, $name) {
 		
-		$path_url = urlencode(utf8_decode($path.$f->filesPath));
+		if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			$path_url = $path.urlencode($f->filesPath);
+		}
+		else {
+			$path_url = $path.urlencode(utf8_decode($f->filesPath));
+		}
 		
 		$content = '
 		<div class="file';
