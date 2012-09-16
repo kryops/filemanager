@@ -180,6 +180,9 @@ class AdminPage {
 		if($dir = @opendir($path)) {
 			
 			while($file = readdir($dir)) {
+				
+				$file_utf = utf8_encode($file);
+				
 				if($file != '.' AND $file != '..' AND $file != 'index.html') {
 					
 					// Ordner
@@ -188,7 +191,7 @@ class AdminPage {
 						// Überprüfen, ob der Ordner bereits eingetragen ist
 						foreach($subfolders as $key=>$f) {
 							
-							if($f->folderPath == $file) {
+							if($f->folderPath == $file_utf) {
 								unset($subfolders[$key]);
 								
 								// rekursiv weitergehen
@@ -209,15 +212,15 @@ class AdminPage {
 							INSERT INTO
 								".Config::mysql_prefix."folder
 							SET
-								folderName = '".MySQL::escape($file)."',
-								folderPath = '".MySQL::escape($file)."',
+								folderName = '".MySQL::escape($file_utf)."',
+								folderPath = '".MySQL::escape($file_utf)."',
 								folderParent = ".$id."
 						", __FILE__, __LINE__);
 						
 						$f = new StdClass;
 						$f->folderID = MySQL::id();
-						$f->folderName = $file;
-						$f->folderPath = $file;
+						$f->folderName = $file_utf;
+						$f->folderPath = $file_utf;
 						$f->folderParent = $id;
 						
 						Folder::$raw[] = $f;
@@ -242,7 +245,7 @@ class AdminPage {
 						// überprüfen, ob die Datei bereits eingetragen ist
 						foreach($files as $key=>$f) {
 							
-							if($f->filesPath == $file) {
+							if($f->filesPath == $file_utf) {
 								unset($files[$key]);
 								continue 2;
 							}
@@ -257,8 +260,8 @@ class AdminPage {
 							INSERT INTO
 								".Config::mysql_prefix."files
 							SET
-								filesName = '".MySQL::escape($file)."',
-								filesPath = '".MySQL::escape($file)."',
+								filesName = '".MySQL::escape($file_utf)."',
+								filesPath = '".MySQL::escape($file_utf)."',
 								files_folderID = ".$id.",
 								filesDate = ".time().",
 								filesSize = ".$size."
@@ -266,8 +269,8 @@ class AdminPage {
 						
 						$f = new StdClass;
 						$f->filesID = MySQL::id();
-						$f->filesName = $file;
-						$f->filesPath = $file;
+						$f->filesName = $file_utf;
+						$f->filesPath = $file_utf;
 						$f->files_folderID = $id;
 						$f->filesDate = time();
 						$f->filesSize = $size;
@@ -276,7 +279,7 @@ class AdminPage {
 						
 						Files::$files[] = $f;
 						
-						Files::createThumbnail($f->filesID, $file, $path.$file);
+						Files::createThumbnail($f->filesID, $file_utf, $path.$file);
 						
 						$files_added++;
 						
