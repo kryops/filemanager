@@ -176,6 +176,7 @@ select, .text {
 
 .text {
 	padding:5px;
+	width:150px;
 }
 
 .text:focus {
@@ -510,4 +511,15 @@ label {
 	}
 }
 
+@media screen and (max-width:310px) {
+	
+	.formtable {
+		font-size:87.5%;
+	}
+	
+	.text {
+		width:120px;
+	}
+	
+}
 

@@ -16,7 +16,12 @@ class AdminPage {
 	public static $actions = array(
 		'' => 'displayAdminPage',
 		'sync' => 'syncFileSystem',
-		'refresh_folders' => 'displayFolders'
+		'refresh_folders' => 'displayFolders',
+		'folder_edit' => 'displayFolderEditPage',
+		'folder_edit_send' => 'editFolder',
+		'folder_delete' => 'deleteFolder',
+		'folder_add' => 'displayFolderAddPage',
+		'folder_add_send' => 'addFolder'
 	);
 	
 	
@@ -38,19 +43,28 @@ class AdminPage {
 		<h2>Ordnerverwaltung</h2>
 		
 		<p>
-			<a class="button ajax" href="index.php?p=admin&amp;sp=sync" data-target="#sync_result">
+			<a class="button ajax" href="index.php?p=admin&amp;sp=sync">
 				<img src="img/synchronisieren.png" alt="" />
 				mit dem Dateisystem synchronisieren
 			</a>
-			&nbsp;
-			<span id="sync_result"></span>
 		</p>
+		
+		<br />
+		
+		<p>
+			<a class="button" href="index.php?p=admin&amp;sp=folder_add">
+				<img src="img/ordner-hinzufuegen.png" alt="" />
+				Ordner erstellen
+			</a>
+		</p>
+		
+		<br />
 		
 		<div id="folder_content">
 			'.self::getFolders().'
 		</div>
 		
-		<br />
+		<br /><br />
 		
 		<h2>Benutzerverwaltung</h2>
 		
@@ -90,9 +104,16 @@ class AdminPage {
 		foreach($folders as $row) {
 			$content .= '
 			
-			<div class="folder" style="margin-left:'.($row->depth*20).'px">
-				<img src="img/ordner.png" alt="" class="icon" />
+			<div class="folder" style="margin-left:'.($row->depth*15).'px">
+				<img src="img/ordner-offen.png" alt="" class="icon" />
 				'.h($row->folderName).'
+				&nbsp;
+				<a href="index.php?p=admin&amp;sp=folder_edit&amp;id='.$row->folderID.'" title="'.h($row->folderName).' bearbeiten">
+					<img src="img/bearbeiten.png" alt="bearbeiten" class="icon hover" />
+				</a>
+				<a href="index.php?p=admin&amp;sp=folder_delete&amp;id='.$row->folderID.'" title="'.h($row->folderName).' l&ouml;schen" class="ajax" data-confirm="Soll der Ordner mitsamt allen Dateien und Unterordnern wirklich unwiderruflich gel&ouml;scht werden?">
+					<img src="img/loeschen.png" alt="l&ouml;schen" class="icon hover" />
+				</a>
 			</div>';
 		}
 		
@@ -104,6 +125,8 @@ class AdminPage {
 	 * Dateien und Ordner in der Datenbank mit dem Dateisystem synchronisieren
 	 */
 	public static function syncFileSystem() {
+		
+		@set_time_limit(300);
 		
 		General::loadClass('Folder');
 		General::loadClass('Files');
@@ -291,6 +314,22 @@ class AdminPage {
 		// nicht mehr existente Ordner und Dateien löschen
 		foreach($subfolders as $f) {
 			
+			$folder_files = Files::getall_ids(Folder::getchildren_ids($f->folderID, true, true));
+			
+			if(count($folder_files)) {
+				
+				MySQL::query("
+					DELETE FROM
+						".Config::mysql_prefix."files
+					WHERE
+						filesID IN(".implode(",", $folder_files).")
+				", __FILE__, __LINE__);
+				
+				$files_deleted += count($folder_files);
+				
+			}
+			
+			
 			MySQL::query("
 				DELETE FROM
 					".Config::mysql_prefix."folder
@@ -327,8 +366,273 @@ class AdminPage {
 		);
 	}
 	
+	/**
+	 * Ordner löschen
+	 */
+	public static function deleteFolder() {
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		General::loadClass('Folder');
+		
+		Folder::delete($id);
+		
+		
+		// Ausgabe
+		$tmpl = new Template;
+		
+		$tmpl->content = 'Der Ordner wurde gelöscht.';
+		
+		$tmpl->script = 'ajaxController.call("index.php?p=admin&sp=refresh_folders", $("#folder_content"), false, true)';
+		
+		$tmpl->output();
+		
+	}
 	
 	
+	/**
+	 * Formular zum Bearbeiten eines Ordners anzeigen
+	 */
+	public static function displayFolderEditPage() {
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		General::loadClass('Folder');
+		
+		$f = Folder::get($id);
+		
+		if(!$f) {
+			Template::bakeError('Der Ordner existiert nicht!');
+		}
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Ordner bearbeiten';
+		
+		$tmpl->content = '
+		
+		<div class="center">
+		
+			<h1>Ordner bearbeiten</h1>
+			
+			<form action="index.php?p=admin&amp;sp=folder_edit_send&amp;id='.$id.'" method="post" class="ajaxform" data-target="#form_result">
+			
+			<table class="formtable center">
+			<tr>
+				<td>Ort</td>
+				<td>
+					<select name="parent" size="1">
+					'.Folder::dropdown($f->folderParent, Folder::getchildren_ids($f->folderID, true, true)).'
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Angezeigter Name</td>
+				<td><input type="text" class="text" name="name" value="'.h($f->folderName).'" maxlength="100" required /></td>
+			</tr>
+			<tr>
+				<td>Name im Dateisystem</td>
+				<td><input type="text" class="text" name="path" value="'.h($f->folderPath).'" maxlength="100" required /></td>
+			</tr>
+			<tr>
+				<td class="center topspace" colspan="2">
+					<input type="submit" class="button wide" value="Speichern" />
+				</td>
+			</tr>
+			</table>
+			
+			</form>
+		
+		<div class="center" id="form_result"></div>
+		
+		</div>
+		';
+		
+		$tmpl->output();
+		
+	}
+	
+	
+	/**
+	 * Ordner-Änderungen speichern 
+	 */
+	public static function editFolder() {
+		
+		// Validierung
+		if(!isset($_GET['id'], $_POST['parent'], $_POST['name'], $_POST['path'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		$parent = (int)$_POST['parent'];
+		
+		if(trim($_POST['name']) == '') {
+			Template::bakeError('Kein Name eingegeben!');
+		}
+		
+		if(trim($_POST['path']) == '' OR $_POST['path'] == '.' OR $_POST['path'] == '..' OR strpos($_POST['path'], '/') !== false OR strpos($_POST['path'], '\\') !== false) {
+			Template::bakeError('Ungültiger Pfad eingegeben!');
+		}
+		
+		
+		General::loadClass('Folder');
+		
+		$f = Folder::get($id);
+		
+		if(!$f) {
+			Template::bakeError('Der Ordner existiert nicht!');
+		}
+		
+		
+		$source = './files/'.Folder::getFolderPath($f->folderParent);
+		$destination = './files/'.Folder::getFolderPath($parent);
+		
+		// Existenz des Ziels überprüfen
+		if($parent != $f->folderParent OR $_POST['path'] != $f->folderPath) {
+			
+			if(file_exists($destination.$_POST['path'])) {
+				Template::bakeError('Ein Ordner mit diesem Namen existiert bereits im Zielverzeichnis!');
+			}
+			
+		}
+		
+		// auf dem Dateisystem verschieben
+		if(!@rename($source.$f->folderPath, $destination.$_POST['path'])) {
+			Template::bakeError('Verschieben fehlgeschlagen! Ungültiger Name im Dateisystem?');
+		}
+		
+		// speichern
+		MySQL::query("
+			UPDATE
+				".Config::mysql_prefix."folder
+			SET
+				folderName = '".MySQL::escape($_POST['name'])."',
+				folderPath = '".MySQL::escape($_POST['path'])."',
+				folderParent = ".$parent."
+			WHERE
+				folderID = ".$id."
+		", __FILE__, __LINE__);
+		
+		
+		// Weiterleitung
+		$tmpl = new Template;
+		$tmpl->redirect('index.php?p=admin');
+		
+	}
+	
+	
+	/**
+	 * Formular zum Erstellen eines Ordners anzeigen
+	 */
+	public static function displayFolderAddPage() {
+		
+		General::loadClass('Folder');
+		
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Ordner erstellen';
+		
+		$tmpl->content = '
+		
+		<div class="center">
+		
+			<h1>Ordner erstellen</h1>
+			
+			<form action="index.php?p=admin&amp;sp=folder_add_send" method="post" class="ajaxform" data-target="#form_result">
+			
+			<table class="formtable center">
+			<tr>
+				<td>Ort</td>
+				<td>
+					<select name="parent" size="1">
+					'.Folder::dropdown().'
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Name</td>
+				<td><input type="text" class="text" name="name" maxlength="96" required /></td>
+			</tr>
+			<tr>
+				<td class="center topspace" colspan="2">
+					<input type="submit" class="button wide" value="Speichern" />
+				</td>
+			</tr>
+			</table>
+			
+			</form>
+		
+		<div class="center" id="form_result"></div>
+		
+		</div>
+		';
+		
+		$tmpl->output();
+		
+	}
+	
+	/**
+	 * Ordner erstellen
+	 */
+	public static function addFolder() {
+		
+		// Validierung
+		if(!isset($_POST['parent'], $_POST['name'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		General::loadClass('Folder');
+		
+		$path = Folder::getFolderPath($_POST['parent']);
+		
+		$name_new = Folder::cleanFolderName($_POST['name']);
+		$name_new2 = $name_new;
+		
+		$destination = './files/'.$path.$name_new;
+		
+		$i = 1;
+		
+		// Ordner schon vorhanden
+		while(file_exists($destination)) {
+			
+			if(strlen($name_new > 96)) {
+				$name_new = substr($name_new, -96, 96);
+				$i++;
+			}
+			
+			$name_new2 = $i.$name_new;
+			$i++;
+			
+			$destination = './files/'.$path.$name_new2;
+		}
+		
+		// erstellen
+		if(!@mkdir($destination)) {
+			Template::bakeError('Fehler beim Erstellen des Ordners! Schreibrechte vorhanden?');
+		}
+		
+		MySQL::query("
+			INSERT INTO
+				".Config::mysql_prefix."folder
+			SET
+				folderName = '".MySQL::escape($_POST['name'])."',
+				folderPath = '".MySQL::escape($name_new2)."',
+				folderParent = ".(int)$_POST['parent']."
+		", __FILE__, __LINE__);
+		
+		
+		// Weiterleitung
+		$tmpl = new Template;
+		$tmpl->redirect('index.php?p=admin');
+		
+	}
 	
 	
 	/**

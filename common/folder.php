@@ -306,8 +306,8 @@ class Folder {
 			$out .= '>';
 			
 			// Verschachtelungstiefe
-			for($i=0; $i<$row->depth; $i++) {
-				$out .= '&nbsp; &nbsp; ';
+			for($i=0; $i<=$row->depth; $i++) {
+				$out .= '&nbsp;&nbsp; ';
 			}
 			
 			$out .= h($row->folderName)."</option>\n";
@@ -337,15 +337,23 @@ class Folder {
 				continue;
 			}
 			
-			if(strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-				$f->folderPath = utf8_decode($f->folderPath);
-			}
-			
+			/*
+			 * Kodierung
+			 * PHP-Zugriff -> Windows+Linux UTF-8 dekodieren
+			 * Browser-Zugriff
+			 * -> Windows nur urlkodieren
+			 * -> Linux erst UTF-8 dekodieren, dann urlkodieren
+			 */
 			if($encode) {
-				$path = rawurlencode($f->folderPath);
+				if(strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+					$f->folderPath = rawurlencode(utf8_decode($f->folderPath));
+				}
+				else {
+					$path = rawurlencode($f->folderPath);
+				}
 			}
 			else {
-				$path = $f->folderPath;
+				$path = utf8_decode($f->folderPath);
 			}
 			
 			$folders[$key] = ($names ? $f->folderName : $path).'/';
@@ -356,13 +364,73 @@ class Folder {
 	
 	
 	/**
+	 * Ordner löschen
+	 * @param int $id
+	 */
+	public static function delete($id) {
+		
+		General::loadClass('Files');
+		
+		// Rohdaten-Array prefetchen
+		if(self::$raw === false) {
+			self::getall_raw();
+		}
+		
+		$f = self::get($id);
+		
+		if(!$f) {
+			return false;
+		}
+		
+		$path = './files/'.self::getFolderPath($id);
+		
+		
+		// Unterordner löschen
+		$folders = self::getchildren_ids($id, true, true);
+		
+		MySQL::query("
+			DELETE FROM
+				".Config::mysql_prefix."folder
+			WHERE
+				folderID IN(".implode(",", $folders).")
+		", __FILE__, __LINE__);
+		
+		
+		// Dateien löschen
+		$files = Files::getall_ids($folders);
+		
+		if(count($files)) {
+			
+			MySQL::query("
+				DELETE FROM
+					".Config::mysql_prefix."files
+				WHERE
+					filesID IN(".implode(",", $files).")
+			", __FILE__, __LINE__);
+			
+		}
+		
+		// Thumbnails löschen
+		foreach($files as $fid) {
+			
+			@unlink('./thumbnails/'.$fid.'.jpg');
+			
+		}
+		
+		// auf dem Dateisystem löschen
+		self::deleteFolderPath($path);
+		
+	}
+	
+	
+	/**
 	 * Ordner im Dateisystem löschen
 	 * @param string $path
 	 */
 	public static function deleteFolderPath($path) {
 		
 		// nur gültige Ordner löschen
-		if(strpos($path, 'files/') === false OR strpos($path, '..') !== false) {
+		if(strpos($path, 'files/') === false OR strpos($path, '../') !== false) {
 			return false;
 		}
 		
@@ -373,7 +441,7 @@ class Folder {
 					
 					// Unterordner rekursiv löschen
 					if(is_dir($path.$file)) {
-						self::deleteFolderPath($path.$file);
+						self::deleteFolderPath($path.$file.'/');
 					}
 					else {
 						@unlink($path.$file);
@@ -381,10 +449,48 @@ class Folder {
 					
 				}
 			}
+			
+			closedir($dir);
 		}
 		
-		@unlink($path);
+		@rmdir(substr($path, 0, -1));
 		
+	}
+	
+	
+	/**
+	 * Ordnername Speicherungs-tauglich machen
+	 * @param string $filename
+	 * @return string bereinigter Dateiname
+	 */
+	public static function cleanFolderName($filename) {
+		
+		$filename = str_replace(
+			array(' ', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß', '..'),
+			array('_', 'ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss', '.'),
+			$filename
+		);
+		
+		$filename = preg_replace('/[^a-zA-Z0-9\.\-_]/Uis', '', $filename);
+		
+		// Länge auf 100 begrenzt
+		if(strlen($filename) > 100) {
+			$filename = substr($filename, -100, 100);
+		}
+		
+		// keine Datei darf mit einem Punkt beginnen
+		if(strpos($filename, '.') !== false) {
+			$fn = explode('.', $filename);
+			if($fn[0] == '') {
+				$filename = '_'.$filename;
+			}
+		}
+		// gar kein Dateiname mehr übrig
+		else if(strlen($filename) == 0) {
+			$filename = '_';
+		}
+		
+		return $filename;
 	}
 	
 }

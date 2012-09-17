@@ -167,6 +167,35 @@ class Files {
 	
 	
 	/**
+	 * Alle Datei-IDs aus bestimmten Ordnern auslesen
+	 * @param array|int|false $folders
+	 * 		Ordner, aus welchen die Dateien geladen werden sollen
+	 * 		false = alle Ordner
+	 * @return array der IDs
+	 */
+	public static function getall_ids($folders=false) {
+		
+		if($folders !== false AND !is_array($folders)) {
+			$folders = array($folders);
+		}
+		
+		// Dateien laden
+		self::load($folders);
+		
+		// nach Ordnern filtern
+		$f = array();
+		
+		foreach(self::$files as $file) {
+			if($folders === false OR in_array($file->files_folderID, $folders)) {
+				$f[] = $file->filesID;
+			}
+		}
+		
+		return $f;
+	}
+	
+	
+	/**
 	 * Dateien in bestimmten Ordnern laden
 	 * @param array|false $folders
 	 */
