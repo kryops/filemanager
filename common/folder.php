@@ -346,7 +346,7 @@ class Folder {
 			 */
 			if($encode) {
 				if(strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-					$f->folderPath = rawurlencode(utf8_decode($f->folderPath));
+					$path = rawurlencode(utf8_decode($f->folderPath));
 				}
 				else {
 					$path = rawurlencode($f->folderPath);
