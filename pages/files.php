@@ -288,7 +288,7 @@ class FilesPage {
 		if(isset($_FILES['file'])) {
 			
 			$path = Folder::getFolderPath($folder);
-			$destination = './files/'.$path.$file->filesPath;
+			$destination = './files/'.$path.utf8_decode($file->filesPath);
 			
 			// Fehlerbehandlung
 			if($_FILES['file']['error'] > 0) {
@@ -333,7 +333,7 @@ class FilesPage {
 			$name_new = $file->filesPath;
 			$name_new2 = $name_new;
 			
-			$destination = './files/'.$path.$name_new;
+			$destination = './files/'.$path.utf8_decode($name_new);
 			
 			$i = 1;
 			
@@ -350,14 +350,14 @@ class FilesPage {
 					$name_new2 = $i.$name_new;
 					$i++;
 					
-					$destination = './files/'.$path.$name_new2;
+					$destination = './files/'.$path.utf8_decode($name_new2);
 				}
 				
 			}
 			
 			// Datei verschieben
 			@rename(
-				'./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath,
+				'./files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath),
 				$destination
 			);
 			
