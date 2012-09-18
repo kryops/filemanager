@@ -384,6 +384,21 @@ label {
 	line-height:2em;
 }
 
+/* admin */
+.datatable {
+	border-spacing:2px;
+}
+
+.datatable th {
+	padding:8px;
+	background-color:#e6e6e6;
+}
+
+.datatable td {
+	padding:8px;
+	background-color:#fff;
+}
+
 /* small and mobile design */
 @media screen and (max-width:990px) {
 	
