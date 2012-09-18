@@ -352,6 +352,8 @@ class AdminPage {
 						
 						Files::createThumbnail($f->filesID, $file_utf, $path.$file);
 						
+						Files::addNotification($f->filesID);
+						
 						$files_added++;
 						
 					}
