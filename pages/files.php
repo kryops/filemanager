@@ -619,7 +619,7 @@ class FilesPage {
 			"files_folderID IN(".implode(", ", $folders).")"
 		);
 		
-		// Suchfilter: irgendeines der Wörter kommt im angezeigten Namen vor
+		// Suchfilter: alle Wörter kommt im angezeigten Namen vor
 		$search = explode(" ", $_POST['search']);
 		
 		$searchfilter = array();
@@ -631,7 +631,7 @@ class FilesPage {
 		}
 		
 		if(count($searchfilter)) {
-			$conds[] = "(".implode(" OR ", $searchfilter).")";
+			$conds[] = "(".implode(" AND ", $searchfilter).")";
 		}
 		
 		
