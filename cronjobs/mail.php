@@ -61,6 +61,13 @@ $query = MySQL::query("
 		mail_filesID IS NOT NULL
 ", __FILE__, __LINE__);
 
+
+if(!MySQL::rows($query)) {
+	echo "Mailversand-Cronjob erfolgreich abgearbeitet, keine Mails zu verschicken.";
+	die();
+}
+
+
 $content = '';
 
 while($row = MySQL::fetch($query)) {
