@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Erstellungszeit: 09. Sep 2012 um 19:43
+-- Erstellungszeit: 19. Sep 2012 um 18:38
 -- Server Version: 5.5.16
 -- PHP-Version: 5.3.8
 
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Datenbank: `filemanager`
+-- Datenbank: `filemanager_schema`
 --
 
 -- --------------------------------------------------------
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `fmg_files` (
   `filesSize` int(10) unsigned NOT NULL,
   `filesThumbnail` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`filesID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -50,8 +50,7 @@ CREATE TABLE IF NOT EXISTS `fmg_folder` (
   `folderPath` varchar(50) NOT NULL,
   `folderParent` int(11) NOT NULL,
   PRIMARY KEY (`folderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -62,6 +61,34 @@ CREATE TABLE IF NOT EXISTS `fmg_folder` (
 CREATE TABLE IF NOT EXISTS `fmg_mail` (
   `mail_filesID` int(10) unsigned NOT NULL,
   PRIMARY KEY (`mail_filesID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `fmg_poll`
+--
+
+CREATE TABLE IF NOT EXISTS `fmg_poll` (
+  `pollID` int(10) NOT NULL AUTO_INCREMENT,
+  `pollName` text NOT NULL,
+  `pollStartDate` int(10) NOT NULL,
+  `pollEndDate` int(10) NOT NULL,
+  `pollAnswerCount` int(10) NOT NULL,
+  `pollAnswerList` text NOT NULL,
+  PRIMARY KEY (`pollID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `fmg_pollstatus`
+--
+
+CREATE TABLE IF NOT EXISTS `fmg_pollstatus` (
+  `pollstatus_pollID` int(10) NOT NULL,
+  `pollstatus_userID` int(10) NOT NULL,
+  `pollstatusAnswer` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -80,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `fmg_user` (
   `userAdmin` tinyint(1) unsigned NOT NULL,
   `userPassForgotten` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
