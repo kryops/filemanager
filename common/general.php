@@ -19,6 +19,7 @@ class General {
 	 * Wert: Name der Klasse, von welcher die dispatch()-Funktion aufgerufen wird
 	 */
 	public static $pages = array(
+		'polls' => 'PollsPage',
 		'files' => 'FilesPage',
 		'login' => 'LoginPage',
 		'register' => 'RegisterPage',

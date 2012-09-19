@@ -538,3 +538,43 @@ label {
 	
 }
 
+/* Umfragen */
+
+.poll {
+	display:block;
+	background-color:#e6e6e6;
+	padding: 10px 5px 10px 15px;
+	margin-top: 10px;
+	font-size:95%;
+	cursor:pointer;
+	border:none;
+	width: 300px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	-o-border-radius:10px;
+	border-radius:10px;
+}
+
+.poll:hover, .poll.active {
+	background-color:#dcdcdc;
+}
+
+#pollform {
+	padding-left: 10px;
+	padding-top: 5px;
+}
+
+.pollopt {
+	padding-bottom: 5px;
+	padding-left: 5px;
+	font-size: 85%;
+}
+
+.pbgreen {
+	background-color:#9aff9a;
+}
+
+.pbyellow {
+	background-color:#ffd700;
+}
+
