@@ -21,7 +21,9 @@ class FilesPage {
 		'move' => 'moveFile',
 		'download' => 'downloadFile',
 		'search' => 'doSearch',
-		'resetnew' => 'resetNewFiles'
+		'resetnew' => 'resetNewFiles',
+		'zip' => 'showZipFolders',
+		'zip_download' => 'downloadZip'
 	);
 	
 	
@@ -171,6 +173,10 @@ class FilesPage {
 		
 		'.self::getFolderView($topfolder).'
 		
+	</div>
+	
+	<div id="files_zip">
+		<a href="index.php?p=files&amp;sp=zip" class="ajax">mehrere Dateien als ZIP-Archiv herunterladen</a>
 	</div>';
 		
 		$tmpl->output();
@@ -716,6 +722,94 @@ class FilesPage {
 		else {
 			self::displayOverview();
 		}
+	}
+	
+	
+	/**
+	 * Auswahl anzeigen, welcher Ordner als Zip heruntergeladen werden soll
+	 */
+	public static function showZipFolders() {
+		
+		General::loadClass('Folder');
+		
+		$tmpl = new Template;
+		
+		$tmpl->content = '
+		
+		<form action="index.php?p=files&amp;sp=zip_download" method="post">
+			Ordner 
+			
+			<select name="folder" size="1">
+			'.Folder::dropdown(User::getTopFolder()).'
+			</select>
+			
+			<input type="submit" class="button" value="herunterladen" />
+		</form>
+		
+		';
+		
+		
+		$tmpl->output();
+		
+	}
+	
+	
+	/**
+	 * Ordner als Zip-Datei herunterladen
+	 */
+	public static function downloadZip() {
+		
+		if(!isset($_POST['folder'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_POST['folder'];
+		
+		General::loadClass('Folder');
+		
+		if($id) {
+			$f = Folder::get($id);
+			
+			if(!$f) {
+				Template::bakeError('Der Ordner existiert nicht!');
+			}
+			
+			$name = $f->folderName;
+		}
+		else {
+			$name = 'Dateimanager';
+		}
+		
+		
+		$filename = md5(microtime(true)).'.zip';
+		
+		// Zip-Achiv erzeugen
+		$zip = new ZipArchive();
+		
+		if($zip->open('./files/'.$filename, ZipArchive::CREATE)) {
+			
+			$path = 'files/'.Folder::getFolderPath($id);
+			
+			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
+			
+			foreach ($iterator as $key=>$value) {
+				$zip->addFile(realpath($key), $key) or die ("ERROR: Could not add file: $key");
+			}
+			
+		    $zip->close();
+		}
+		else {
+			Template::bakeError('Fehler aufgetreten!');
+		}
+		
+		
+		// herunterladen
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="'.$name.'.zip"');
+		echo file_get_contents('./files/'.$filename);
+		
+		// Archiv wieder löschen
+		@unlink('./files/'.$filename);
 	}
 	
 	
