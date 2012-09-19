@@ -314,7 +314,6 @@ class FilesPage {
 						filesID = ".$id."
 				", __FILE__, __LINE__);
 				
-				
 				$tmpl->content .= '
 					<div class="green">'.h($_FILES['file']['name']).' erfolgreich hochgeladen</div>
 					<br />';
@@ -373,6 +372,12 @@ class FilesPage {
 					filesID = ".$id."
 			", __FILE__, __LINE__);
 			
+			
+			// Benachrichtigung
+			if(isset($_POST['notification'])) {
+				Files::addNotification($id);
+			}
+			
 		}
 		
 		$tmpl->content .= '
@@ -395,6 +400,12 @@ class FilesPage {
 			<tr>
 				<td>Datei neu hochladen <span class="italic">(optional)</span></td>
 				<td><input type="file" name="file" /></td>
+			</tr>
+			<tr>
+				<td class="center" colspan="2">
+					<input type="checkbox" name="notification" id="upload_notification" />
+					<label for="upload_notification">erneute Benachrichtigung f&uuml;r die Datei erstellen</label>
+				</td>
 			</tr>
 			<tr>
 				<td class="center topspace" colspan="2">
@@ -619,7 +630,7 @@ class FilesPage {
 			"files_folderID IN(".implode(", ", $folders).")"
 		);
 		
-		// Suchfilter: irgendeines der Wörter kommt im angezeigten Namen vor
+		// Suchfilter: alle Wörter kommt im angezeigten Namen vor
 		$search = explode(" ", $_POST['search']);
 		
 		$searchfilter = array();
@@ -631,7 +642,7 @@ class FilesPage {
 		}
 		
 		if(count($searchfilter)) {
-			$conds[] = "(".implode(" OR ", $searchfilter).")";
+			$conds[] = "(".implode(" AND ", $searchfilter).")";
 		}
 		
 		

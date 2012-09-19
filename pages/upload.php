@@ -78,7 +78,11 @@ class UploadPage {
 							filesSize = ".(int)$_FILES['file']['size'][$key]."
 					", __FILE__, __LINE__);
 					
-					Files::createThumbnail(MySQL::id(), $name_new2, $destination);
+					$id = MySQL::id();
+					
+					Files::createThumbnail($id, $name_new2, $destination);
+					
+					Files::addNotification($id);
 					
 					$tmpl->content .= '<div class="green">'.h($name).' erfolgreich hochgeladen</div>';
 					

@@ -481,6 +481,22 @@ class Files {
 		
 	}
 	
+	
+	/**
+	 * E-Mail-Benachrichtigung für eine Datei eintragen
+	 * @param int $id Datei-ID
+	 */
+	public static function addNotification($id) {
+		
+		MySQL::query("
+			INSERT IGNORE INTO
+				".Config::mysql_prefix."mail
+			SET
+				mail_filesID = ".(int)$id."
+		", __FILE__, __LINE__);
+		
+	}
+	
 }
 
 ?>

@@ -14,6 +14,9 @@ class Config {
 	
 	const name = 'TINF11B Dateimanager';
 	
+	const url = 'http://localhost/filemanager';
+	const mail_addr = 'no-reply@kryops.de';
+	
 	const folder_top = 0;
 	
 	const debug = true;

@@ -14,7 +14,7 @@ include './common/general.php';
 
 General::$loadtime = microtime(true);
 General::globalPHPSettings();
-
+General::setCacheHeaders();
 
 if(!@include './config/config.php') {
 	
@@ -25,6 +25,8 @@ if(!@include './config/config.php') {
 	Kopiere die Datei config/config-sample.php, erstelle daraus die config/config.php und passe dort alle wichtigen Einstellungen an.
 	<br />
 	Den Import f&uuml;r die MySQL-Datenbank findest du im Ordner sql.
+	<br /><br />
+	Die cronjobs/mail.php wickelt den Mailversand ab, sie sollte periodisch aufgerufen werden.
 	<br /><br />
 	Die Ordner files und thumbnails ben&ouml;tigen PHP-Schreibrechte.
 	

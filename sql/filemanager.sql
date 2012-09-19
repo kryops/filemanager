@@ -52,6 +52,18 @@ CREATE TABLE IF NOT EXISTS `fmg_folder` (
   PRIMARY KEY (`folderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `fmg_mail`
+--
+
+CREATE TABLE IF NOT EXISTS `fmg_mail` (
+  `mail_filesID` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`mail_filesID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- --------------------------------------------------------
 
 --

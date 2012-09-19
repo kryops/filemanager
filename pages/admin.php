@@ -21,7 +21,10 @@ class AdminPage {
 		'folder_edit_send' => 'editFolder',
 		'folder_delete' => 'deleteFolder',
 		'folder_add' => 'displayFolderAddPage',
-		'folder_add_send' => 'addFolder'
+		'folder_add_send' => 'addFolder',
+		'user_edit' => 'displayUserEditPage',
+		'user_edit_send' => 'editUser',
+		'user_delete' => 'deleteUser',
 	);
 	
 	
@@ -68,7 +71,52 @@ class AdminPage {
 		
 		<h2>Benutzerverwaltung</h2>
 		
-		<p>noch nicht implementiert</p>
+		<div id="user_content">
+			<table class="datatable">
+			<tr>
+				<th>Name</th>
+				<th>E-Mail</th>
+				<th>&nbsp;</th>
+				<th>&nbsp;</th>
+			</tr>';
+		
+		
+		// Benutzer auflisten
+		$query = MySQL::query("
+			SELECT
+				*
+			FROM
+				".Config::mysql_prefix."user
+			ORDER BY
+				userID ASC
+		", __FILE__, __LINE__);
+		
+		while($row = MySQL::fetch($query)) {
+			
+			$tmpl->content .= '
+			<tr id="user'.$row->userID.'">
+				<td>'.h($row->userName).'</td>
+				<td>'.h($row->userEmail).'</td>
+				<td>'.($row->userAdmin ? '<img src="img/admin.png" alt="Administrator" title="Administrator" class="icon" />' : '&nbsp;').'</td>
+				<td>
+					<a href="index.php?p=admin&amp;sp=user_edit&amp;id='.$row->userID.'" title="'.h($row->userName).' bearbeiten">
+						<img src="img/bearbeiten.png" alt="bearbeiten" class="icon hover" />
+					</a>
+					
+					'.($row->userID == User::$id ?
+					'<img src="img/loeschen.png" alt="" class="icon" style="opacity:0.3" title="Du kannst dich nicht l&ouml;schen" />'
+					: '
+					<a href="index.php?p=admin&amp;sp=user_delete&amp;id='.$row->userID.'" title="'.h($row->userName).' l&ouml;schen" class="ajax" data-confirm="Soll der Benutzer wirklich unwiderruflich gel&ouml;scht werden?">
+						<img src="img/loeschen.png" alt="l&ouml;schen" class="icon hover" />
+					</a>').'
+				</td>
+			</tr>';
+			
+		}
+		
+		$tmpl->content .= '
+			</table>
+		</div>
 		';
 		
 		$tmpl->output();
@@ -303,6 +351,8 @@ class AdminPage {
 						Files::$files[] = $f;
 						
 						Files::createThumbnail($f->filesID, $file_utf, $path.$file);
+						
+						Files::addNotification($f->filesID);
 						
 						$files_added++;
 						
@@ -633,6 +683,225 @@ class AdminPage {
 		$tmpl->redirect('index.php?p=admin');
 		
 	}
+	
+	
+	
+	/**
+	 * Formular zum Bearbeiten eines Benutzers anzeigen
+	 */
+	public static function displayUserEditPage() {
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		$data = MySQL::querySingle("
+			SELECT
+				*
+			FROM
+				".Config::mysql_prefix."user
+			WHERE
+				userID = ".$id."
+		", __FILE__, __LINE__);
+		
+		if(!$data) {
+			Template::bakeError('Der Benutzer existiert nicht!');
+		}
+		
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Benutzer bearbeiten';
+		
+		$tmpl->content = '
+		
+		<div class="center">
+		
+			<h1>Benutzer bearbeiten</h1>
+			
+			<form action="index.php?p=admin&amp;sp=user_edit_send&amp;id='.$id.'" method="post" class="ajaxform" data-target="#form_result">
+			
+			<table class="formtable center">
+			<tr>
+				<td>Name</td>
+				<td><input type="text" class="text" name="name" maxlength="50" required autofocus value="'.h($data->userName).'" /></td>
+			</tr>
+			<tr>
+				<td>E-Mail-Adresse</td>
+				<td><input type="text" class="text" name="email" maxlength="100" required value="'.h($data->userEmail).'" /></td>
+			</tr>
+			<tr>
+				<td>Passwort &auml;ndern</td>
+				<td><input type="password" class="text" name="pw1" /></td>
+			</tr>
+			<tr>
+				<td class="italic">(wiederholen)</td>
+				<td><input type="password" class="text" name="pw2" /></td>
+			</tr>
+			<tr>
+				<td class="center" colspan="2">
+					<input type="checkbox" name="admin" id="user_admin" '.($data->userAdmin ? 'checked' : '').($id == User::$id ? ' disabled' : '').' />
+					<label for="user_admin">Benutzer ist Administrator</label>
+				</td>
+			</tr>
+			<tr>
+				<td class="center topspace" colspan="2">
+					<input type="submit" class="button wide" value="Speichern" />
+				</td>
+			</tr>
+			</table>
+			
+			</form>
+		
+		<div class="center" id="form_result"></div>
+		
+		</div>
+		';
+		
+		$tmpl->output();
+		
+	}
+	
+	
+	/**
+	 * Benutzer bearbeiten
+	 */
+	public static function editUser() {
+		
+		$tmpl = new Template;
+		
+		// Validierung
+		if(!isset($_GET['id'], $_POST['name'], $_POST['email'], $_POST['pw1'], $_POST['pw2'])) {
+			$tmpl->abort('Daten unvollständig!');
+		}
+		
+		if(trim($_POST['email']) == '') {
+			$tmpl->abort('Keine E-Mail-Adresse eingegeben!');
+		}
+		
+		if(strpos($_POST['email'], '@') === false) {
+			$tmpl->abort('Ungültige E-Mail-Adresse eingegeben!');
+		}
+		
+		if($_POST['pw1'] != $_POST['pw2']) {
+			$tmpl->abort('Die Passwörter sind unterschiedlich!');
+		}
+		
+		
+		$id = (int)$_GET['id'];
+		
+		$data = MySQL::querySingle("
+			SELECT
+				*
+			FROM
+				".Config::mysql_prefix."user
+			WHERE
+				userID = ".$id."
+		", __FILE__, __LINE__);
+		
+		if(!$data) {
+			Template::bakeError('Der Benutzer existiert nicht!');
+		}
+		
+		
+		// Benutzer existiert schon
+		$name_exists = MySQL::querySingle("
+			SELECT
+				*
+			FROM
+				".Config::mysql_prefix."user
+			WHERE
+				userID != ".$id."
+				AND userName = '".MySQL::escape($_POST['name'])."'
+		", __FILE__, __LINE__);
+		
+		if($name_exists) {
+			Template::bakeError('Es existiert bereits ein Benutzer mit diesem Namen!');
+		}
+		
+		
+		// Passwortänderung
+		$pw = $data->userPassword;
+		
+		if($_POST['pw1'] != '') {
+			$pw = User::encryptPassword($_POST['pw1']);
+		}
+		
+		// Admin
+		if(isset($_POST['admin']) OR $id == User::$id) {
+			$admin = 1;
+		}
+		else {
+			$admin = 0;
+		}
+		
+		
+		// speichern
+		MySQL::query("
+			UPDATE
+				".Config::mysql_prefix."user
+			SET
+				userName = '".MySQL::escape($_POST['name'])."',
+				userEmail = '".MySQL::escape($_POST['email'])."',
+				userPassword = '".$pw."',
+				userAdmin = ".$admin."
+			WHERE
+				userID = ".$id."
+		", __FILE__, __LINE__);
+		
+		
+		// Weiterleitung
+		$tmpl->redirect('index.php?p=admin');
+		
+	}
+	
+	
+	/**
+	 * Benutzer löschen
+	 */
+	public static function deleteUser() {
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		$id = (int)$_GET['id'];
+		
+		if($id == User::$id) {
+			Template::bakeError('Du kannst dich nicht selbst löschen!');
+		}
+		
+		
+		// Benutzer löschen
+		MySQL::query("
+			DELETE FROM
+				".Config::mysql_prefix."user
+			WHERE
+				userID = ".$id."
+		", __FILE__, __LINE__);
+		
+		
+		// Ausgabe
+		
+		$tmpl = new Template;
+		
+		// Zeile entfernen
+		if(isset($_GET['ajax'])) {
+			
+			$tmpl->script = '$("#user'.$id.'").remove()';
+			$tmpl->output();
+			
+		}
+		// noscript-Fallback: weiterleiten
+		else {
+			$tmpl->redirect('index.php?p=admin');
+		}
+		
+		
+	}
+	
+	
 	
 	
 	/**
