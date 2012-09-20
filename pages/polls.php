@@ -15,17 +15,16 @@ class PollsPage {
 	 */
 	public static $actions = array(
 		'' => 'displayOverview',
-		'answer' => 'saveAnswer'
+		'answer' => 'saveAnswer',
+		'update' => 'updateAnswer'
 	);
-	
-	public static $answered = false;
 	
 	/*
 	 * Seiten und Aktionen
 	 */
 	
 	/**
-	 * Dateiübersicht anzeigen
+	 * Umfragenübersicht anzeigen
 	 */
 	public static function displayOverview() {
 		
@@ -33,28 +32,14 @@ class PollsPage {
 		General::loadClass('Polls');
 		Polls::loadall();
 		
-		if(isset($_GET['active'])) $active = $_GET['active'];
-		else $active = -1;
-		
 		$tmpl = new Template;
 		
-		if(self::$answered) {
-			$tmpl->content .= '<div class="green">Stimme abgegeben.</div>';
-			self::$answered = false;
-		}
-		
 		if(Polls::$pollcount) {
-// 			$tmpl->content = '
-// 				<div id="pollcontent">';
 			
 			foreach(Polls::$polls as $p) {
 				
 				$tmpl->content .= '
-				<a href="index.php?p=polls';
-				
-				if($active != $p->pollID) $tmpl->content .= '&amp;active='.$p->pollID;
-				
-				$tmpl->content .= '" class="poll">
+				<a href="index.php?p=polls" id="pollhead'.$p->pollID.'" class="poll" data-id='.$p->pollID.' data-expanded=0 >
 				';
 				
 				if($p->answer == '')
@@ -63,51 +48,49 @@ class PollsPage {
 					$tmpl->content .= $p->pollName;
 				
 				
-				$tmpl->content .= ' (bis '.Polls::formatDate($p->pollEndDate).')';
-				// '.$p->pollAnswerCount.' Antworten - '
+				$tmpl->content .= ' (bis '.Polls::formatDate($p->pollEndDate).')</a>';
+				// $p->pollAnswerCount einbringen?
 				
+				// Aufklappbare Details
 				$tmpl->content .= '
-				</a>';
+				<div class="polldetail" id="poll'.$p->pollID.'" style="display: none;">
+				<form class="pollform" action="index.php?p=polls&amp;sp=';
 				
-				if($p->pollID == $active) {
-					$tmpl->content .= '
-					<div class="polldetail">
+				if($p->answer == '') $tmpl->content .= 'answer';
+				else $tmpl->content .= 'update';
 					
-					<form action="index.php?p=polls&amp;active='.$active
-					.'&amp;sp=answer" method="post" id="pollform" enctype="multipart/form-data">';
-						
-					$i = 0;
-					$ans = Polls::check($active);
-						
-					foreach(explode(",", $p->pollAnswerList) as $a) {
-						$tmpl->content .= '
-						<div class="pollopt">
-						<input type="checkbox" name="answer" value="'.$a.'"';
-
-						$ans = Polls::check($active);
-						if($ans == $a) $tmpl->content .= ' checked="checked"';
-						
-						$tmpl->content .= '/>  '.$a.'
-						</div>';
-					}
-
-					if($ans == '')
-					$tmpl->content .= '
-					<input type="submit" class="button wide pbgreen" value="Antworten" />';
-					else $tmpl->content .= '
-					<input type="submit" class="button wide pbyellow" value="Ändern" />';
+				$tmpl->content .= '" method="post" enctype="multipart/form-data">';
 					
+				// Liste mit möglichen Antworten erzeugen
+				$answerlist = explode(",", Polls::getAnswerList($p->pollID));
+					
+				foreach($answerlist as $a) {
 					$tmpl->content .= '
-					</form>
-					</div>
-					';
+					<div class="pollopt">
+					<input type="radio" name="answer" value="'.$a.'"';
+						
+					if($p->answer == $a) $tmpl->content .= ' checked="yes"';
+						
+					$tmpl->content .= '/>  '.$a.'
+					</div>';
 				}
 				
+				$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">';
+					
+				if($p->answer == '')
+					$tmpl->content .= '
+					<input type="submit" class="button wide pbgreen" value="Antworten" />';
+				else $tmpl->content .= '
+				<input type="submit" class="button wide pbyellow" value="Ändern" />';
+				
+				$tmpl->content .= '
+				</form>
+				</div>
+				';
+				
 			}
-			
-// 			$tmpl->content .= '
-// 				</div>
-// 			';
+
+			$tmpl->content .= '<div id="pollcomment" class="green"></div>';
 			
 			$tmpl->output();
 		}
@@ -122,65 +105,64 @@ class PollsPage {
 	 */
 	public static function saveAnswer() {
 		
-		General::loadClass('Polls');
-		General::loadClass('User');
-		
-		if(isset($_GET['active'], $_POST['answer'])) {
-			$active = $_GET['active'];
-			if(Polls::check($active) != '')
-			{
-				MySQL::query("
-						UPDATE
-						".Config::mysql_prefix."pollstatus
-						SET
-						pollstatusAnswer = '".$_POST['answer']."'
-						WHERE
-						pollstatus_pollID = ".$active."
-						AND
-						pollstatus_userID = ".User::$id."
-						", __FILE__, __LINE__);
-			}
-			else
-			{
-				MySQL::query("
-						INSERT INTO
-						".Config::mysql_prefix."pollstatus
-						(pollstatus_pollID,
-						pollstatus_userID,
-						pollstatusAnswer)
-						VALUES
-						(".$active.",
-						".User::$id.",
-						'".$_POST['answer']."')
-						", __FILE__, __LINE__);
+		if(isset($_GET['pollid'], $_POST['answer'])) {
+			$id = $_POST['pollid'];
+			MySQL::query("
+					INSERT INTO
+					".Config::mysql_prefix."pollstatus
+					(pollstatus_pollID,
+					pollstatus_userID,
+					pollstatusAnswer)
+					VALUES
+					(".$id.",
+					".User::$id.",
+					'".$_POST['answer']."')
+					", __FILE__, __LINE__);
 				
 				
-				MySQL::query("
-						UPDATE
-						".Config::mysql_prefix."poll
-						SET
-						pollAnswerCount = pollAnswerCount + 1
-						WHERE
-						pollID = ".$active."
-						", __FILE__, __LINE__);
-			}
-
+			MySQL::query("
+					UPDATE
+					".Config::mysql_prefix."poll
+					SET
+					pollAnswerCount = pollAnswerCount + 1
+					WHERE
+					pollID = ".$id."
+					", __FILE__, __LINE__);
 			
-			self::$answered = true;
-			self::displayOverview();
 		}
 		else
 			Template::bakeError("Fehler beim Speichern der Daten.");
 		
+	}
+	
+	/**
+	 * Antwort ändern
+	 */
+	public static function updateAnswer() {
+	
+		if(isset($_POST['id'], $_POST['answer'])) {
+			$id = $_POST['id'];
+			MySQL::query("
+					UPDATE
+					".Config::mysql_prefix."pollstatus
+					SET
+					pollstatusAnswer = '".$_POST['answer']."'
+					WHERE
+					pollstatus_pollID = ".$id."
+					AND
+					pollstatus_userID = ".User::$id."
+					", __FILE__, __LINE__);
+			
+			$tmpl = new Template;
+			
+			$tmpl->content .= 'Antwort gespeichert.';
+			
+			$tmpl->output();
 
-		
-// 		$tmpl = new Template;
-// 		$tmpl->title = 'Umfrage beantworten';
-		
-		//$tmpl->content .= '<div class="green">Stimme abgegeben.</div>';
-
-		
-		
+		}
+		else
+			Template::bakeError("Fehler beim Speichern der Daten. ".$_GET);
+	
 	}
 	
 	

@@ -559,15 +559,19 @@ label {
 	background-color:#dcdcdc;
 }
 
-#pollform {
-	padding-left: 10px;
-	padding-top: 5px;
+.pollform {
+	padding: 10px 5px 10px 10px;
+	width: 250px;
 }
 
 .pollopt {
-	padding-bottom: 5px;
-	padding-left: 5px;
+	padding: 2px 5px 2px 5px;
+	margin-bottom: 5px;
 	font-size: 85%;
+}
+
+.pollopt:hover {
+	background-color:#dcdcdc;
 }
 
 .pbgreen {
@@ -578,3 +582,7 @@ label {
 	background-color:#ffd700;
 }
 
+#pollcomment {
+	margin: 10px 0px 10px 15px;
+	font-size: 85%;
+}

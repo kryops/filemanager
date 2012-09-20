@@ -12,45 +12,28 @@ class Polls {
 	
 	
 	/**
-	 * Den Datensatz einer Umfrage laden
+	 * Die Antowortliste einer Umfrage laden
 	 * @param int $id
 	 */
-	public static function get($id) {
+	public static function getAnswerList($id) {
 		
-		return MySQL::querySingle("
+		$poll = MySQL::querySingle("
 			SELECT
 				".Config::mysql_prefix."poll.*
 			FROM
 				".Config::mysql_prefix."poll
 			WHERE
-				pollID = ".(int)$id."
+				pollID = ".$id."
 		", __FILE__, __LINE__);
 		
-	}
-	
-	public static function check($id)
-	{
-		$check = MySQL::querySingle("
-				SELECT
-				".Config::mysql_prefix."pollstatus.*
-				FROM
-				".Config::mysql_prefix."pollstatus
-				WHERE
-				pollstatus_pollID = ".$id."
-				AND
-				pollstatus_userID = ".User::$id."
-				", __FILE__, __LINE__);
-		if($check) return $check->pollstatusAnswer;
+		if($poll) return $poll->pollAnswerList;
 		else return '';
 	}
 	
 	
 	/**
 	 * Alle Umfragen laden
-	 * @param array|int|false $folders
-	 * 		Ordner, aus welchen die Dateien geladen werden sollen
-	 * 		false = alle Ordner
-	 * @return array Datei-Datensätze
+	 * @return array Umfrage-Datensätze
 	 */
 	public static function loadall() {
 		
@@ -61,9 +44,6 @@ class Polls {
 		// zurücksetzen, wenn alle geladen werden
 		self::$polls = array();
 		
-		
-		
-
 		$query = MySQL::query("
 			SELECT
 				".Config::mysql_prefix."poll.*

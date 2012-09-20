@@ -44,7 +44,7 @@ var ajaxController = {
 			
 			success: function(data, status, xhr){
 				// Fehlermeldung
-				if(data.error) {
+				if(data & data.error) {
 					if(errorout && r) {
 						$(r).html('<div class="error">'+data.error+'</div>');
 					}
@@ -253,6 +253,56 @@ $(document).ready(function() {
 		target.slideToggle(300);
 		
 		e.preventDefault();
+	});
+	
+	// Umfragen auf und zuklappen
+	$(document).on('click', '.poll', function(e) {
+		
+		// Ziel-ID ermitteln
+		var id = $(this).data('id');
+		
+		if(id === null) {
+			return false;
+		}
+		
+		var target = $('#poll'+id);
+		
+		var expanded = $(this).data('expanded') ? 0 : 1;
+		$(this).data('expanded', expanded);
+
+		//ajaxController.call('index.php?p=polls&sp=expand', target, {'id':id, 'toggle':toggle}, false);
+		
+		target.slideToggle(300);
+		
+		e.preventDefault();
+	});
+	
+	// Umfrage beantworten
+	$(document).on('submit', '.pollform', function(e) {
+
+		var head = $('#pollhead'+this[this.length-2].value);
+		
+		var expanded = head.data('expanded') ? 0 : 1;
+		head.data('expanded', expanded);
+		
+		var details = $('#poll'+this[this.length-2].value);
+		details.slideToggle(300);
+		
+		ajaxController.call(
+			$(this).attr('action'),
+			$('#pollcomment'),
+			$(this).serialize(),
+			!$(this).data('error')
+		);
+		
+		e.preventDefault();
+	});
+	
+	// Antwort auswählen
+	$(document).on('click', '.pollopt', function(e) {
+		
+			this.firstElementChild.checked = true;
+
 	});
 	
 	// Wurzelordner ändern
