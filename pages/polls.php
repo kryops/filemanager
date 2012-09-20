@@ -129,6 +129,11 @@ class PollsPage {
 					pollID = ".$id."
 					", __FILE__, __LINE__);
 			
+			$tmpl = new Template;
+				
+			$tmpl->content .= 'Antwort gespeichert.';
+				
+			$tmpl->output();
 		}
 		else
 			Template::bakeError("Fehler beim Speichern der Daten.");
