@@ -384,6 +384,17 @@ label {
 	line-height:2em;
 }
 
+#files_zip {
+	margin-top:3em;
+	text-align:right;
+	font-size:87.5%;
+}
+
+
+#files_zip a:hover {
+	text-decoration:underline;
+}
+
 /* admin */
 .datatable {
 	border-spacing:2px;
