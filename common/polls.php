@@ -32,12 +32,11 @@ class Polls {
 	 */
 	public static function delete($id) {
 	
-		MySQL::query("
-				DELETE FROM
-				".Config::mysql_prefix."poll
-				WHERE
-				pollID = ".(int)$id."
-				", __FILE__, __LINE__);
+		MySQL::query("DELETE FROM
+					 ".Config::mysql_prefix."poll
+					 WHERE
+					 pollID = ".$id."
+					 ", __FILE__, __LINE__);
 	
 	}
 	
@@ -56,9 +55,7 @@ class Polls {
 			FROM
 				".Config::mysql_prefix."poll
 				LEFT JOIN ".Config::mysql_prefix."pollstatus
-				ON pollstatus_pollID = pollID
-			WHERE
-				pollstatus_userID = ".User::$id." OR pollstatus_userID IS NULL 
+				ON pollstatus_pollID = pollID AND pollstatus_userID = ".User::$id."
 		", __FILE__, __LINE__);
 		
 		while($row = MySQL::fetch($query)) {
@@ -76,15 +73,6 @@ class Polls {
 	 */
 	public static function getCount() {
 		return self::$pollcount;
-	}
-	
-	/**
-	 * Datum formatieren
-	 * @param int $date Unix-Timestamp
-	 * @return string formatiertes Datum
-	 */
-	public static function formatDate($date) {
-		return strftime('%d.%m.%y', $date);
 	}
 	
 }

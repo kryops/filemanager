@@ -90,11 +90,11 @@ class PollsPage {
 
 			$tmpl->content .= '<div id="pollcomment" class="green"></div>';
 			
-			$tmpl->output();
 		}
 		else // no content
-			Template::bakeError('Keine Umfragen.');
+			$tmpl->content .= '<div class="center">Keine Umfragen.</div>';
 
+		$tmpl->output();
 		
 	}
 	

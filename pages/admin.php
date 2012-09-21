@@ -761,12 +761,12 @@ class AdminPage {
 		General::loadClass('Polls');
 	
 		Polls::delete($id);
-	
+		
 		// Ausgabe
 		$tmpl = new Template;
 		
 		// Zeile entfernen
-		if(isset($_GET['ajax'])) {
+		if(isset($_GET['ajax']) AND false) { // TODO: parseerror PROBLEM
 			
 			$tmpl->script = '$("#poll'.$id.'").remove()';
 			$tmpl->output();
@@ -978,7 +978,7 @@ class AdminPage {
 				pollStartDate = ".time().",
 				pollEndDate = ".$end.",
 				pollAnswerCount = 0,
-				pollAnswerList = '".preg_replace("\n","",MySQL::escape($_POST['answers']))."',
+				pollAnswerList = '".str_replace("\n","",MySQL::escape($_POST['answers']))."',
 				pollType = ".(int)$_POST['type']."
 				", __FILE__, __LINE__);
 	
