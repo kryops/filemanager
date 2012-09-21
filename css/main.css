@@ -548,14 +548,30 @@ label {
 	font-size:95%;
 	cursor:pointer;
 	border:none;
-	width: 300px;
+	max-width: 500px;
 	-moz-border-radius:10px;
 	-webkit-border-radius:10px;
 	-o-border-radius:10px;
 	border-radius:10px;
 }
 
-.poll:hover, .poll.active {
+.pnew {
+	font-weight: bold;
+}
+
+.pold {
+	color: #555;
+}
+
+.pbanswer{
+	background-color:#9aff9a;
+}
+
+.pbupdate{
+	background-color:#ffd700;
+}
+
+.poll:hover, .poll.active, .newpoll:hpover, .newpoll.active {
 	background-color:#dcdcdc;
 }
 
@@ -568,18 +584,11 @@ label {
 	padding: 2px 5px 2px 5px;
 	margin-bottom: 5px;
 	font-size: 85%;
+	cursor: pointer;
 }
 
 .pollopt:hover {
 	background-color:#dcdcdc;
-}
-
-.pbgreen {
-	background-color:#9aff9a;
-}
-
-.pbyellow {
-	background-color:#ffd700;
 }
 
 #pollcomment {

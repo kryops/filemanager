@@ -39,22 +39,17 @@ class PollsPage {
 			foreach(Polls::$polls as $p) {
 				
 				$tmpl->content .= '
-				<a href="index.php?p=polls" id="pollhead'.$p->pollID.'" class="poll" data-id='.$p->pollID.' data-expanded=0 >
+				<a href="index.php?p=polls&amp;active='.$p->pollID.'" id="pollhead'.$p->pollID.'" 
+				class="poll '.(($p->answer == '') ? 'pnew' : 'pold').'" data-id='.$p->pollID.' data-expanded=0 >'
+					.$p->pollName.' (bis '.Polls::formatDate($p->pollEndDate).')
+				</a>
 				';
-				
-				if($p->answer == '')
-					$tmpl->content .= '<strong>'.$p->pollName.'</strong>';
-				else
-					$tmpl->content .= $p->pollName;
-				
-				
-				$tmpl->content .= ' (bis '.Polls::formatDate($p->pollEndDate).')</a>';
-				// $p->pollAnswerCount einbringen?
-				
-				// Aufklappbare Details
+
+				// Details
 				$tmpl->content .= '
-				<div class="polldetail" id="poll'.$p->pollID.'" style="display: none;">
-				<form class="pollform" action="index.php?p=polls&amp;sp=';
+				<div class="polldetail" id="poll'.$p->pollID.'"'
+				.((isset($_GET['active']) AND $p->pollID == $_GET['active']) ? '' : 'style="display: none;"').'>
+				<form class="pollform '.(($p->answer == '') ? '' : 'pupdate').'" action="index.php?p=polls&amp;sp=';
 				
 				if($p->answer == '') $tmpl->content .= 'answer';
 				else $tmpl->content .= 'update';
@@ -62,28 +57,29 @@ class PollsPage {
 				$tmpl->content .= '" method="post" enctype="multipart/form-data">';
 					
 				// Liste mit möglichen Antworten erzeugen
-				$answerlist = explode(",", Polls::getAnswerList($p->pollID));
+				$answerlist = explode(",", $p->pollAnswerList);
 					
 				foreach($answerlist as $a) {
 					$tmpl->content .= '
 					<div class="pollopt">
-					<input type="radio" name="answer" value="'.$a.'"';
+					<input type="'.(($p->pollType) ? 'checkbox' : 'radio').'" name="answer" value="'.$a.'"';
 						
-					if($p->answer == $a) $tmpl->content .= ' checked="yes"';
-						
+					if(!$p->pollType && $p->answer == $a) $tmpl->content .= ' checked="yes"';
+					else if ($p->pollType == 1 && in_array($a, $p->answer)) $tmpl->content .= ' checked="yes"';
+					
 					$tmpl->content .= '/>  '.$a.'
 					</div>';
 				}
 				
-				$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">';
-					
-				if($p->answer == '')
-					$tmpl->content .= '
-					<input type="submit" class="button wide pbgreen" value="Antworten" />';
-				else $tmpl->content .= '
-				<input type="submit" class="button wide pbyellow" value="Ändern" />';
+				$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">
+				<input type="submit" id="pb'.$p->pollID.'" class="button wide ';
 				
-				$tmpl->content .= '
+				if($p->answer == '')
+					$tmpl->content .= 'pbanswer" value="Abstimmen"';
+				else 
+					$tmpl->content .= 'pbupdate" value="Ändern"';
+				
+				$tmpl->content .= '/>
 				</form>
 				</div>
 				';
@@ -105,8 +101,11 @@ class PollsPage {
 	 */
 	public static function saveAnswer() {
 		
-		if(isset($_GET['pollid'], $_POST['answer'])) {
-			$id = $_POST['pollid'];
+		if(isset($_POST['id'], $_POST['answer'])) {
+			
+			$tmpl = new Template;
+			
+			$id = $_POST['id'];
 			MySQL::query("
 					INSERT INTO
 					".Config::mysql_prefix."pollstatus
@@ -128,9 +127,7 @@ class PollsPage {
 					WHERE
 					pollID = ".$id."
 					", __FILE__, __LINE__);
-			
-			$tmpl = new Template;
-				
+
 			$tmpl->content .= 'Antwort gespeichert.';
 				
 			$tmpl->output();
@@ -146,6 +143,10 @@ class PollsPage {
 	public static function updateAnswer() {
 	
 		if(isset($_POST['id'], $_POST['answer'])) {
+			
+			
+			$tmpl = new Template;
+			
 			$id = $_POST['id'];
 			MySQL::query("
 					UPDATE
@@ -158,8 +159,6 @@ class PollsPage {
 					pollstatus_userID = ".User::$id."
 					", __FILE__, __LINE__);
 			
-			$tmpl = new Template;
-			
 			$tmpl->content .= 'Antwort gespeichert.';
 			
 			$tmpl->output();
@@ -169,96 +168,6 @@ class PollsPage {
 			Template::bakeError("Fehler beim Speichern der Daten. ".$_GET);
 	
 	}
-	
-	
-// 	/**
-// 	 * Suchfunktion
-// 	 */
-// 	public static function doSearch() {
-		
-// 		if(!isset($_POST['search'])) {
-// 			Template::bakeError('Daten unvollständig');
-// 		}
-		
-// 		General::loadClass('Folder');
-// 		General::loadClass('Files');
-		
-// 		$tmpl = new Template;
-		
-// 		$topfolder = User::getTopFolder();
-		
-// 		// alle zu durchsuchenden ermitteln
-// 		$folders = Folder::getchildren_ids($topfolder, true);
-// 		$folders[] = $topfolder;
-		
-// 		$conds = array(
-// 			"files_folderID IN(".implode(", ", $folders).")"
-// 		);
-		
-// 		// Suchfilter: alle Wörter kommt im angezeigten Namen vor
-// 		$search = explode(" ", $_POST['search']);
-		
-// 		$searchfilter = array();
-		
-// 		foreach($search as $s) {
-// 			if($s != '') {
-// 				$searchfilter[] = "filesName LIKE '%".MySQL::escape(MySQL::escape($s))."%'";
-// 			}
-// 		}
-		
-// 		if(count($searchfilter)) {
-// 			$conds[] = "(".implode(" AND ", $searchfilter).")";
-// 		}
-		
-		
-// 		$query = MySQL::query("
-// 			SELECT
-// 				".Config::mysql_prefix."files.*,
-// 				userName
-// 			FROM
-// 				".Config::mysql_prefix."files
-// 				LEFT JOIN ".Config::mysql_prefix."user
-// 					ON userID = files_userID
-// 			WHERE
-// 				".implode(" AND ", $conds)."
-// 			ORDER BY
-// 				filesDate DESC
-// 			LIMIT 250
-// 		", __FILE__, __LINE__);
-		
-// 		$treffer = MySQL::rows($query);
-		
-// 		if($treffer == 0) {
-// 			$tmpl->content = '
-// 				<br />
-// 				<div class="center">Die Suche lieferte keine Treffer.</div>
-// 			';
-// 		}
-// 		else {
-// 			$tmpl->content = '
-// 				<p>Die Suche lieferte '.$treffer.' Treffer:</p>
-// 				<div class="whitebox">';
-			
-// 			while($f = mysql_fetch_object($query)) {
-				
-// 				$path = Folder::getFolderPath($f->files_folderID, false, true);
-				
-// 				$tmpl->content .= self::getFileView(
-// 					$f,
-// 					$path,
-// 					Folder::getFolderPath($f->files_folderID, true).$f->filesName
-// 				);
-				
-// 			}
-			
-// 			$tmpl->content .= '
-// 				</div>
-// 			';
-// 		}
-		
-// 		$tmpl->output();
-// 	}
-	
 	
 	
 	/**

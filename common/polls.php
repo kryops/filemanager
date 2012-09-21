@@ -37,8 +37,6 @@ class Polls {
 	 */
 	public static function loadall() {
 		
-		General::loadClass('User');
-		
 		$conds = array();
 		
 		// zurücksetzen, wenn alle geladen werden
@@ -64,8 +62,18 @@ class Polls {
 						pollstatus_userID = ".User::$id
 						, __FILE__, __LINE__);
 				$ans = MySQL::fetch($tmp);
-				if($ans) $row->answer = $ans->pollstatusAnswer;
+				if($ans) {
+					if($row->pollType == 1) {
+						if(strpos($ans->pollstatusAnswer, ","))
+							$row->answer = explode(",", $ans->pollstatusAnswer);
+						else
+							$row->answer[0] = $ans->pollstatusAnswer;
+					}
+					else
+						$row->answer = $ans->pollstatusAnswer;					
+				}
 				else $row->answer = '';
+				
 				self::$polls[] = $row;
 				self::$pollcount += 1;
 			}

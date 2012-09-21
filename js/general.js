@@ -280,18 +280,21 @@ $(document).ready(function() {
 	// Umfrage beantworten
 	$(document).on('submit', '.pollform', function(e) {
 
-		var head = $('#pollhead'+this[this.length-2].value);
+		var id = this[this.length-2].value;
 		
-		var expanded = head.data('expanded') ? 0 : 1;
-		head.data('expanded', expanded);
+		var head = $('#pollhead'+id)[0];		
+		head.className = "poll pold"; // Text ausgrauen
+		var expanded = $(head).data('expanded') ? 0 : 1;
+		$(head).data('expanded', expanded);
 		
-		var details = $('#poll'+this[this.length-2].value);
-		details.slideToggle(300);
+		$('#poll'+id).slideToggle(300);
+		
+		$('#pb'+id)[0].className = "button wide pbupdate";
 		
 		ajaxController.call(
 			$(this).attr('action'),
 			$('#pollcomment'),
-			$(this).serialize(),
+			$(this).serialize().replace("&answer=", ","),
 			!$(this).data('error')
 		);
 		
@@ -301,6 +304,9 @@ $(document).ready(function() {
 	// Antwort auswählen
 	$(document).on('click', '.pollopt', function(e) {
 		
+		if(this.firstElementChild.type == "checkbox")
+			this.firstElementChild.checked = !this.firstElementChild.checked;
+		else // radio button
 			this.firstElementChild.checked = true;
 
 	});
