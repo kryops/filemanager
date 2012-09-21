@@ -30,18 +30,19 @@ class PollsPage {
 		
 		// Umfragen laden
 		General::loadClass('Polls');
-		Polls::loadall();
+		
+		$polls= Polls::getall();
 		
 		$tmpl = new Template;
 		
 		if(Polls::$pollcount) {
 			
-			foreach(Polls::$polls as $p) {
+			foreach($polls as $p) {
 				
 				$tmpl->content .= '
 				<a href="index.php?p=polls&amp;active='.$p->pollID.'" id="pollhead'.$p->pollID.'" 
 				class="poll '.(($p->answer == '') ? 'pnew' : 'pold').'" data-id='.$p->pollID.' data-expanded=0 >'
-					.$p->pollName.' (bis '.Polls::formatDate($p->pollEndDate).')
+					.$p->pollTitle.' (bis '.General::formatDate($p->pollEndDate).')
 				</a>
 				';
 
@@ -63,9 +64,10 @@ class PollsPage {
 					$tmpl->content .= '
 					<div class="pollopt">
 					<input type="'.(($p->pollType) ? 'checkbox' : 'radio').'" name="answer" value="'.$a.'"';
-						
-					if(!$p->pollType && $p->answer == $a) $tmpl->content .= ' checked="yes"';
-					else if ($p->pollType == 1 && in_array($a, $p->answer)) $tmpl->content .= ' checked="yes"';
+
+					if($p->answer != '')
+						if((!$p->pollType && $p->answer == $a) OR ($p->pollType == 1 && in_array($a, explode(",", $p->answer)))) 
+							$tmpl->content .= ' checked="yes"';
 					
 					$tmpl->content .= '/>  '.$a.'
 					</div>';

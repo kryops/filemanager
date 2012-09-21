@@ -7,78 +7,68 @@ if(!defined('FILEMANAGER')) {
 
 class Polls {
 
-	public static $polls = array();
 	public static $pollcount = 0;
 	
-	
 	/**
-	 * Die Antowortliste einer Umfrage laden
+	 * Den Datensatz einer Datei laden
 	 * @param int $id
 	 */
-	public static function getAnswerList($id) {
-		
-		$poll = MySQL::querySingle("
-			SELECT
+	public static function get($id) {
+	
+		return MySQL::querySingle("
+				SELECT
 				".Config::mysql_prefix."poll.*
-			FROM
+				FROM
 				".Config::mysql_prefix."poll
-			WHERE
-				pollID = ".$id."
-		", __FILE__, __LINE__);
-		
-		if($poll) return $poll->pollAnswerList;
-		else return '';
+				WHERE
+				pollID = ".(int)$id."
+				", __FILE__, __LINE__);
+	
 	}
 	
+	/**
+	 * Den Datensatz einer Datei laden
+	 * @param int $id
+	 */
+	public static function delete($id) {
+	
+		MySQL::query("
+				DELETE FROM
+				".Config::mysql_prefix."poll
+				WHERE
+				pollID = ".(int)$id."
+				", __FILE__, __LINE__);
+	
+	}
 	
 	/**
 	 * Alle Umfragen laden
 	 * @return array Umfrage-Datensätze
 	 */
-	public static function loadall() {
-		
-		$conds = array();
-		
-		// zurücksetzen, wenn alle geladen werden
-		self::$polls = array();
+	public static function getall() {
+
+		$polls = array();
 		
 		$query = MySQL::query("
 			SELECT
-				".Config::mysql_prefix."poll.*
+				".Config::mysql_prefix."poll.*,
+				pollstatusAnswer AS answer
 			FROM
 				".Config::mysql_prefix."poll
+				LEFT JOIN ".Config::mysql_prefix."pollstatus
+				ON pollstatus_pollID = pollID
+			WHERE
+				pollstatus_userID = ".User::$id." OR pollstatus_userID IS NULL 
 		", __FILE__, __LINE__);
 		
 		while($row = MySQL::fetch($query)) {
 			if($row->pollEndDate > time()) {
-				$tmp = MySQL::query("
-						SELECT
-						".Config::mysql_prefix."pollstatus.pollstatusAnswer
-						FROM
-						".Config::mysql_prefix."pollstatus
-						WHERE
-						pollstatus_pollID = ".$row->pollID."
-						AND
-						pollstatus_userID = ".User::$id
-						, __FILE__, __LINE__);
-				$ans = MySQL::fetch($tmp);
-				if($ans) {
-					if($row->pollType == 1) {
-						if(strpos($ans->pollstatusAnswer, ","))
-							$row->answer = explode(",", $ans->pollstatusAnswer);
-						else
-							$row->answer[0] = $ans->pollstatusAnswer;
-					}
-					else
-						$row->answer = $ans->pollstatusAnswer;					
-				}
-				else $row->answer = '';
-				
-				self::$polls[] = $row;
+				$polls[] = $row;
 				self::$pollcount += 1;
 			}
 		}
 		
+		return $polls;
 	}
 	
 	/**

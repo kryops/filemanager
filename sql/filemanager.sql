@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Erstellungszeit: 19. Sep 2012 um 18:38
+-- Erstellungszeit: 21. Sep 2012 um 19:51
 -- Server Version: 5.5.16
 -- PHP-Version: 5.3.8
 
@@ -71,13 +71,14 @@ CREATE TABLE IF NOT EXISTS `fmg_mail` (
 
 CREATE TABLE IF NOT EXISTS `fmg_poll` (
   `pollID` int(10) NOT NULL AUTO_INCREMENT,
-  `pollName` text NOT NULL,
+  `pollTitle` text NOT NULL,
   `pollStartDate` int(10) NOT NULL,
   `pollEndDate` int(10) NOT NULL,
   `pollAnswerCount` int(10) NOT NULL,
   `pollAnswerList` text NOT NULL,
+  `pollType` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`pollID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=7 ;
 
 -- --------------------------------------------------------
 
@@ -107,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `fmg_user` (
   `userAdmin` tinyint(1) unsigned NOT NULL,
   `userPassForgotten` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

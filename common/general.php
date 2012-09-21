@@ -117,6 +117,15 @@ class General {
 		
 	}
 	
+	/**
+	 * Datum formatieren
+	 * @param int $date Unix-Timestamp
+	 * @return string formatiertes Datum
+	 */
+	public static function formatDate($date) {
+		return strftime('%d.%m.%y', $date);
+	}
+	
 }
 
 /*

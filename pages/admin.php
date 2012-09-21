@@ -22,6 +22,12 @@ class AdminPage {
 		'folder_delete' => 'deleteFolder',
 		'folder_add' => 'displayFolderAddPage',
 		'folder_add_send' => 'addFolder',
+		'refresh_polls' => 'displayPolls',
+		'poll_edit' => 'displayPollEditPage',
+		'poll_edit_send' => 'editPoll',
+		'poll_delete' => 'deletePoll',
+		'poll_new' => 'displayNewPollPage',
+		'poll_new_send' => 'createPoll',
 		'user_edit' => 'displayUserEditPage',
 		'user_edit_send' => 'editUser',
 		'user_delete' => 'deleteUser',
@@ -117,12 +123,70 @@ class AdminPage {
 		$tmpl->content .= '
 			</table>
 		</div>
+		
+		<br />
+		<br />
+		
+		<h2>Umfrageverwaltung</h2>
+		
+		<p>
+			<a class="button" href="index.php?p=admin&amp;sp=poll_new">
+				<img src="img/umfragen.png" alt="" />
+				Neue Umfrage
+			</a>
+		</p>
+
+		<br />
+		
+		<div id="poll_content">
+			<table class="datatable">
+			<tr>
+				<th>Titel</th>
+				<th>l&auml;uft bis</th>
+				<th>Stimmen</th>
+				<th>&nbsp;</th>
+			</tr>';
+		
+		
+		// Benutzer auflisten
+		$query = MySQL::query("
+			SELECT
+				*
+			FROM
+				".Config::mysql_prefix."poll
+			ORDER BY
+				pollStartDate DESC
+		", __FILE__, __LINE__);
+		
+		while($row = MySQL::fetch($query)) {
+			
+			$tmpl->content .= '
+			<tr id="poll'.$row->pollID.'">
+				<td>'.h($row->pollTitle).'</td>
+				<td>'.General::formatDate($row->pollEndDate).'</td>
+				<td class="center">'.$row->pollAnswerCount.'</td>
+				<td>
+					<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$row->pollID.'" title="Umfrage bearbeiten">
+						<img src="img/bearbeiten.png" alt="bearbeiten" class="icon hover" />
+					</a>
+					<a href="index.php?p=admin&amp;sp=poll_delete&amp;id='.$row->pollID.'" title="Umfrage l&ouml;schen" class="ajax" data-confirm="Soll die Umfrage wirklich unwiderruflich gel&ouml;scht werden?">
+						<img src="img/loeschen.png" alt="l&ouml;schen" class="icon hover" />
+					</a>
+				</td>
+			</tr>';
+			
+		}
+		
+		$tmpl->content .= '
+			</table>
+		</div>
 		';
 		
 		$tmpl->output();
 		
 	}
 	
+	// ORDNER
 	
 	/**
 	 * Baumansicht aller Ordner ausgeben
@@ -443,7 +507,6 @@ class AdminPage {
 		
 	}
 	
-	
 	/**
 	 * Formular zum Bearbeiten eines Ordners anzeigen
 	 */
@@ -508,7 +571,6 @@ class AdminPage {
 		$tmpl->output();
 		
 	}
-	
 	
 	/**
 	 * Ordner-Änderungen speichern 
@@ -576,7 +638,6 @@ class AdminPage {
 		$tmpl->redirect('index.php?p=admin');
 		
 	}
-	
 	
 	/**
 	 * Formular zum Erstellen eines Ordners anzeigen
@@ -684,7 +745,251 @@ class AdminPage {
 		
 	}
 	
+	// UMFRAGEN
 	
+	/**
+	 * Umfrage löschen
+	 */
+	public static function deletePoll() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+	
+		Polls::delete($id);
+	
+		// Ausgabe
+		$tmpl = new Template;
+		
+		// Zeile entfernen
+		if(isset($_GET['ajax'])) {
+			
+			$tmpl->script = '$("#poll'.$id.'").remove()';
+			$tmpl->output();
+			
+		}
+		// noscript-Fallback: weiterleiten
+		else {
+			$tmpl->redirect('index.php?p=admin');
+		}
+	
+		$tmpl->output();
+	
+	}
+	
+	/**
+	 * Formular zum Bearbeiten einer Umfrage anzeigen
+	 */
+	public static function displayPollEditPage() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+	
+		$p = Polls::get($id);
+	
+		if(!$p) {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+	
+		$tmpl = new Template;
+		$tmpl->title = 'Umfrage bearbeiten';
+	
+		$tmpl->content = '
+	
+		<div class="center">
+	
+		<h1>Umfrage bearbeiten</h1>
+			
+		<form action="index.php?p=admin&amp;sp=poll_edit_send&amp;id='.$id.'" method="post" class="ajaxform" data-target="#form_result">
+			
+		<table class="formtable center">
+		<tr>
+		<td>Titel</td>
+		<td><input type="text" class="text" name="title" value="'.h($p->pollTitle).'" maxlength="100" required /></td>
+		</tr>
+		<tr>
+		<td>Umfrage endet am</td>
+		<td><input type="text" class="text" name="end" value="'.General::formatDate($p->pollEndDate).'" maxlength="100" required /></td>
+		</tr>
+		<tr>
+		<td>Stimmen</td>
+		<td>
+		<select name="type" size="1">
+		<option value="0"'.($p->pollType == 0 ? 'selected="selected"' : '').'>Eine Stimme</option>
+		<option value="1"'.($p->pollType == 1 ? 'selected="selected"' : '').'>Mehrere Stimmen</option>
+		</select>
+		</td>
+		</tr>
+		<tr>
+		<td>Antworten<br/>(durch Kommas<br>getrennt)</td>
+		<td><textarea rows=8 cols=30 class="text" name="answers">'.h($p->pollAnswerList).'</textarea></td>
+		</tr>
+		<tr>
+		<td class="center topspace" colspan="2">
+		<input type="submit" class="button wide" value="Speichern" />
+		</td>
+		</tr>
+		</table>
+			
+		</form>
+	
+		<div class="center" id="form_result"></div>
+	
+		</div>
+		';
+	
+		$tmpl->output();
+	
+	}
+
+	/**
+	 * Ordner-Änderungen speichern
+	 */
+	public static function editPoll() {
+	
+		// Validierung
+		if(!isset($_GET['id'], $_POST['title'], $_POST['end'], $_POST['answers'], $_POST['type'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		if(trim($_POST['title']) == '') {
+			Template::bakeError('Kein Titel eingegeben!');
+		}
+	
+		$end = strtotime($_POST['end']);
+		
+		if(!$end) {
+			Template::bakeError('Datum ungültig!');
+		}
+	
+	
+		// speichern
+		MySQL::query("
+				UPDATE
+				".Config::mysql_prefix."poll
+				SET
+				pollTitle = '".MySQL::escape($_POST['title'])."',
+				pollEndDate = '".$end."',
+				pollAnswerList = '".str_replace("\n","",MySQL::escape($_POST['answers']))."',
+				pollType = ".$_POST['type']."
+				WHERE
+				pollID = ".$id."
+				", __FILE__, __LINE__);
+	
+	
+		// Weiterleitung
+		$tmpl = new Template;
+		$tmpl->redirect('index.php?p=admin');
+	
+	}
+
+	/**
+	 * Formular zum Erstellen einer Umfrage anzeigen
+	 */
+	public static function displayNewPollPage() {
+	
+		$tmpl = new Template;
+		$tmpl->title = 'Umfrage erstellen';
+	
+		$tmpl->content = '
+	
+		<div class="center">
+	
+		<h1>Umfrage erstellen</h1>
+			
+		<form action="index.php?p=admin&amp;sp=poll_new_send" method="post" class="ajaxform" data-target="#form_result">
+			
+		<table class="formtable center">
+		<tr>
+		<td>Titel</td>
+		<td><input type="text" class="text" name="title" maxlength="100" required /></td>
+		</tr>
+		<tr>
+		<td>Umfrage endet am</td>
+		<td><input type="text" class="text" name="end" maxlength="100" required /></td>
+		</tr>
+		<tr>
+		<td>Stimmen</td>
+		<td>
+		<select name="type" size="1">
+		<option value="0">Eine Stimme</option>
+		<option value="1">Mehrere Stimmen</option>
+		</select>
+		</td>
+		</tr>
+		<tr>
+		<td>Antworten (durch Kommas getrennt)</td>
+		<td><textarea rows=8 cols=30 class="text" name="answers"></textarea></td>
+		</tr>
+		<tr>
+		<td class="center topspace" colspan="2">
+		<input type="submit" class="button wide" value="Erstellen" />
+		</td>
+		</tr>
+		</table>
+			
+		</form>
+	
+		<div class="center" id="form_result"></div>
+	
+		</div>
+		';
+	
+		$tmpl->output();
+	
+	}
+	
+	/**
+	 * Umfrage erstellen
+	 */
+	public static function createPoll() {
+
+		// Validierung
+		if(!isset($_POST['title'], $_POST['end'], $_POST['answers'], $_POST['type'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+		
+		if(trim($_POST['title']) == '') {
+			Template::bakeError('Kein Titel eingegeben!');
+		}
+		
+		$end = strtotime($_POST['end']);
+		
+		if(!$end) {
+			Template::bakeError('Datum ungültig!');
+		}
+		
+		MySQL::query("
+				INSERT INTO
+				".Config::mysql_prefix."poll
+				SET
+				pollTitle = '".MySQL::escape($_POST['title'])."',
+				pollStartDate = ".time().",
+				pollEndDate = ".$end.",
+				pollAnswerCount = 0,
+				pollAnswerList = '".preg_replace("\n","",MySQL::escape($_POST['answers']))."',
+				pollType = ".(int)$_POST['type']."
+				", __FILE__, __LINE__);
+	
+	
+		// Weiterleitung
+		$tmpl = new Template;
+		$tmpl->redirect('index.php?p=admin');
+	
+	}
+	
+	// BENUTZER
 	
 	/**
 	 * Formular zum Bearbeiten eines Benutzers anzeigen
@@ -900,7 +1205,6 @@ class AdminPage {
 		
 		
 	}
-	
 	
 	
 	
