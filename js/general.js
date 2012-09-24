@@ -44,7 +44,7 @@ var ajaxController = {
 			
 			success: function(data, status, xhr){
 				// Fehlermeldung
-				if(data & data.error) {
+				if(data.error) {
 					if(errorout && r) {
 						$(r).html('<div class="error">'+data.error+'</div>');
 					}
@@ -282,24 +282,34 @@ $(document).ready(function() {
 
 		var id = this[this.length-2].value;
 		
-		var head = $('#pollhead'+id)[0];		
-		head.className = "poll pold"; // Text ausgrauen
-		var expanded = $(head).data('expanded') ? 0 : 1;
-		$(head).data('expanded', expanded);
-		
-		$('#poll'+id).slideToggle(300);
-		
-		$('#pb'+id)[0].className = "button wide pbupdate";
-		
-		ajaxController.call(
-			$(this).attr('action'),
-			$('#pollcomment'),
-			$(this).serialize().replace("&answer=", ","),
-			!$(this).data('error')
-		);
+		if($(this).serialize().substring(0,6) == 'answer')
+		{
+			var head = $('#pollhead'+id)[0];		
+			head.className = "poll grey"; // Text ausgrauen
+			var expanded = $(head).data('expanded') ? 0 : 1;
+			$(head).data('expanded', expanded);
+			
+			$('#poll'+id).slideToggle(300);
+			
+			$('#pb'+id)[0].className = "button wide pbupdate";
+			
+			ajaxController.call(
+				$(this).attr('action'),
+				$('#poll_status'),
+				$(this).serialize(),
+				!$(this).data('error')
+			);
+		}
 		
 		e.preventDefault();
 	});
+	
+	// Klick auf Link abfangen
+	$(document).on('click', '.noclick', function(e) {
+		
+		e.preventDefault();
+	});
+	
 	
 	// Antwort auswählen
 	$(document).on('click', '.pollopt', function(e) {

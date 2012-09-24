@@ -33,6 +33,8 @@ class PollsPage {
 		
 		$polls= Polls::getall();
 		
+		$active = (isset($_GET['active']) ? $_GET['active'] : 0);
+		
 		$tmpl = new Template;
 		
 		if(Polls::$pollcount) {
@@ -40,8 +42,8 @@ class PollsPage {
 			foreach($polls as $p) {
 				
 				$tmpl->content .= '
-				<a href="index.php?p=polls&amp;active='.$p->pollID.'" id="pollhead'.$p->pollID.'" 
-				class="poll '.(($p->answer == '') ? 'pnew' : 'pold').'" data-id='.$p->pollID.' data-expanded=0 >'
+				<a href="index.php?p=polls'.($active != $p->pollID ? '&amp;active='.$p->pollID : '').'" id="pollhead'.$p->pollID.'" 
+				class="poll '.(($p->answer == '') ? 'bold' : 'grey').'" data-id='.$p->pollID.' data-expanded=0 >'
 					.$p->pollTitle.' (bis '.General::formatDate($p->pollEndDate).')
 				</a>
 				';
@@ -59,18 +61,22 @@ class PollsPage {
 					
 				// Liste mit möglichen Antworten erzeugen
 				$answerlist = explode(",", $p->pollAnswerList);
+				$i = 0;
 					
 				foreach($answerlist as $a) {
 					$tmpl->content .= '
 					<div class="pollopt">
-					<input type="'.(($p->pollType) ? 'checkbox' : 'radio').'" name="answer" value="'.$a.'"';
+					<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.$a.'"';
 
-					if($p->answer != '')
-						if((!$p->pollType && $p->answer == $a) OR ($p->pollType == 1 && in_array($a, explode(",", $p->answer)))) 
+					if($p->pollType == 0 && $p->answer == $a) $tmpl->content .= ' checked="yes"';
+					
+					if($p->pollType == 1 && $p->answer != '' && in_array($a, explode(",", $p->answer)))
 							$tmpl->content .= ' checked="yes"';
 					
 					$tmpl->content .= '/>  '.$a.'
 					</div>';
+					
+					$i++;
 				}
 				
 				$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">
@@ -88,11 +94,11 @@ class PollsPage {
 				
 			}
 
-			$tmpl->content .= '<div id="pollcomment" class="green"></div>';
+			$tmpl->content .= '<div id="poll_status" class="green"></div>';
 			
 		}
 		else // no content
-			$tmpl->content .= '<div class="center">Keine Umfragen.</div>';
+			$tmpl->content .= '<div class="center">Keine Umfragen</div>';
 
 		$tmpl->output();
 		
@@ -107,6 +113,10 @@ class PollsPage {
 			
 			$tmpl = new Template;
 			
+			$answer = $_POST['answer'];
+			
+			if(is_array($answer)) $answer = implode(",", $answer);
+			
 			$id = $_POST['id'];
 			MySQL::query("
 					INSERT INTO
@@ -117,7 +127,7 @@ class PollsPage {
 					VALUES
 					(".$id.",
 					".User::$id.",
-					'".$_POST['answer']."')
+					'".$answer."')
 					", __FILE__, __LINE__);
 				
 				
@@ -145,16 +155,20 @@ class PollsPage {
 	public static function updateAnswer() {
 	
 		if(isset($_POST['id'], $_POST['answer'])) {
-			
-			
+					
 			$tmpl = new Template;
 			
 			$id = $_POST['id'];
+			
+			$answer = $_POST['answer'];
+				
+			if(is_array($answer)) $answer = implode(",", $answer);
+			
 			MySQL::query("
 					UPDATE
 					".Config::mysql_prefix."pollstatus
 					SET
-					pollstatusAnswer = '".$_POST['answer']."'
+					pollstatusAnswer = '".$answer."'
 					WHERE
 					pollstatus_pollID = ".$id."
 					AND

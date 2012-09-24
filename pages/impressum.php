@@ -26,9 +26,13 @@ class ImpressumPage {
 	<br />
 	<br />
 	
-	<p>Einige Icons von <a href="http://p.yusukekamiyamane.com/" target="_blank" class="italic">Yusuke Kamiyamane</a>. Alle Rechte vorbehalten.
+	<p>
+	Umfragemodul von Ernesto Elsäßer.
 	<br />
-	Lizensiert unter einer <a href="http://creativecommons.org/licenses/by/3.0/deed.de" target="_blank" class="italic">Creative Commons Namensnennung 3.0 Lizenz</a>.</p>
+	Einige Icons von <a href="http://p.yusukekamiyamane.com/" target="_blank" class="italic">Yusuke Kamiyamane</a>. Alle Rechte vorbehalten.
+	<br />
+	Lizensiert unter einer <a href="http://creativecommons.org/licenses/by/3.0/deed.de" target="_blank" class="italic">Creative Commons Namensnennung 3.0 Lizenz</a>.
+	</p>
 		';
 		
 		$tmpl->output();

@@ -123,7 +123,7 @@ class General {
 	 * @return string formatiertes Datum
 	 */
 	public static function formatDate($date) {
-		return strftime('%d.%m.%y', $date);
+		return strftime('%d.%m.%Y', $date);
 	}
 	
 }

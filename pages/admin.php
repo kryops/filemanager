@@ -28,6 +28,7 @@ class AdminPage {
 		'poll_delete' => 'deletePoll',
 		'poll_new' => 'displayNewPollPage',
 		'poll_new_send' => 'createPoll',
+		'poll_results' => 'displayPollResults',
 		'user_edit' => 'displayUserEditPage',
 		'user_edit_send' => 'editUser',
 		'user_delete' => 'deleteUser',
@@ -143,7 +144,7 @@ class AdminPage {
 			<tr>
 				<th>Titel</th>
 				<th>l&auml;uft bis</th>
-				<th>Stimmen</th>
+				<th>&nbsp;</th>
 				<th>&nbsp;</th>
 			</tr>';
 		
@@ -164,7 +165,11 @@ class AdminPage {
 			<tr id="poll'.$row->pollID.'">
 				<td>'.h($row->pollTitle).'</td>
 				<td>'.General::formatDate($row->pollEndDate).'</td>
-				<td class="center">'.$row->pollAnswerCount.'</td>
+				<td>
+					<a href="index.php?p=admin&amp;sp=poll_results&amp;id='.$row->pollID.'" title="Ergebnisse ansehen">
+						<img src="img/ansehen.png" alt="ansehen" class="icon hover" />
+					</a>
+				</td>
 				<td>
 					<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$row->pollID.'" title="Umfrage bearbeiten">
 						<img src="img/bearbeiten.png" alt="bearbeiten" class="icon hover" />
@@ -863,16 +868,11 @@ class AdminPage {
 	
 		$id = (int)$_GET['id'];
 	
-		if(trim($_POST['title']) == '') {
-			Template::bakeError('Kein Titel eingegeben!');
-		}
-	
 		$end = strtotime($_POST['end']);
 		
-		if(!$end) {
+		if(!$end OR $_POST['end'] != General::formatDate($end)) {
 			Template::bakeError('Datum ungültig!');
 		}
-	
 	
 		// speichern
 		MySQL::query("
@@ -881,7 +881,7 @@ class AdminPage {
 				SET
 				pollTitle = '".MySQL::escape($_POST['title'])."',
 				pollEndDate = '".$end."',
-				pollAnswerList = '".str_replace("\n","",MySQL::escape($_POST['answers']))."',
+				pollAnswerList = '".MySQL::escape(str_replace("\r\n", "",$_POST['answers']))."',
 				pollType = ".$_POST['type']."
 				WHERE
 				pollID = ".$id."
@@ -891,7 +891,7 @@ class AdminPage {
 		// Weiterleitung
 		$tmpl = new Template;
 		$tmpl->redirect('index.php?p=admin');
-	
+		
 	}
 
 	/**
@@ -960,10 +960,6 @@ class AdminPage {
 			Template::bakeError('Daten unvollständig!');
 		}
 		
-		if(trim($_POST['title']) == '') {
-			Template::bakeError('Kein Titel eingegeben!');
-		}
-		
 		$end = strtotime($_POST['end']);
 		
 		if(!$end) {
@@ -978,7 +974,7 @@ class AdminPage {
 				pollStartDate = ".time().",
 				pollEndDate = ".$end.",
 				pollAnswerCount = 0,
-				pollAnswerList = '".str_replace("\n","",MySQL::escape($_POST['answers']))."',
+				pollAnswerList = '".MySQL::escape(str_replace("\r\n", "",$_POST['answers']))."',
 				pollType = ".(int)$_POST['type']."
 				", __FILE__, __LINE__);
 	
@@ -988,6 +984,84 @@ class AdminPage {
 		$tmpl->redirect('index.php?p=admin');
 	
 	}
+
+	/**
+	 * Ergebnisse einer Umfrage anzeigen
+	 */
+	public static function displayPollResults() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+	
+		$p = Polls::get($id);
+	
+		if(!$p) {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+	
+		$results = Polls::getResults($id,$p->pollAnswerList);
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Ergebnisse';
+	
+		$tmpl->content = '
+	
+		<div class="center">
+	
+		<h1>'.$p->pollTitle.'</h1>
+		';
+		
+		switch($p->pollAnswerCount) {
+			case 0: $tmpl->content .= '<p>Es hat noch niemand abgestimmt.</p>'; break;
+			case 1: $tmpl->content .= '<p>Es hat bereits eine Person abgestimmt.</p>'; break;
+			default: $tmpl->content .= '<p>Es haben bereits '.$p->pollAnswerCount.' Personen abgestimmt.</p>';
+		}
+			
+		if($p->pollAnswerCount > 0)
+		{
+			$tmpl->content .= '
+			<table class="polltable center">
+			<tbody>';
+			
+			foreach(explode(",", $p->pollAnswerList) as $a)
+			{
+				$tmpl->content .= '
+				<tr>
+				<td class="pt_title">'.$a.'</td>
+				<td class="pt_bar">
+					<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
+					&nbsp;'.$results[$a][0].'&nbsp;
+					</div>
+				</td>
+				<td class="pt_users">
+					<a href="" title="'.$results[$a][1].'" class="noclick">
+						<img src="img/fragezeichen.png" alt="Personen" class="icon hover" />
+					</a>
+				</td>
+				</tr>';
+			}
+			
+			$tmpl->content .= '
+			</tbody>
+			</table>';
+		}
+		
+		$tmpl->content .= '
+		<br/>
+		<p><a class="button wide" href="index.php?p=admin">Zurück</a></p>
+	
+		</div>
+		';
+	
+		$tmpl->output();
+	
+	}
+	
 	
 	// BENUTZER
 	
