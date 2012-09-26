@@ -94,7 +94,7 @@ class PollsPage {
 				
 			}
 
-			$tmpl->content .= '<div id="poll_status" class="green"></div>';
+			$tmpl->content .= '<div id="poll_status" class="green center"></div>';
 			
 		}
 		else // no content

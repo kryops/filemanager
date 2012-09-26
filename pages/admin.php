@@ -867,12 +867,27 @@ class AdminPage {
 		}
 	
 		$id = (int)$_GET['id'];
-	
+		$answers = str_replace("\r\n", "", $_POST['answers']);
 		$end = strtotime($_POST['end']);
 		
 		if(!$end OR $_POST['end'] != General::formatDate($end)) {
 			Template::bakeError('Datum ungültig!');
 		}
+		
+		General::loadClass("Polls");
+		
+		$old = Polls::get($id);
+		
+		// veraltete Antworten löschen
+		$newcount = $old->pollAnswerCount;
+		
+		if($_POST['type'] != $old->pollType OR $answers != $old->pollAnswerList)
+		{
+			Polls::removeAnswers($id);
+			$newcount = 0;
+		}
+		
+		//TODO: Benachrichtigung dass Antwort gelöscht wurde
 	
 		// speichern
 		MySQL::query("
@@ -880,14 +895,14 @@ class AdminPage {
 				".Config::mysql_prefix."poll
 				SET
 				pollTitle = '".MySQL::escape($_POST['title'])."',
-				pollEndDate = '".$end."',
-				pollAnswerList = '".MySQL::escape(str_replace("\r\n", "",$_POST['answers']))."',
+				pollEndDate = ".$end.",
+				pollAnswerCount = ".$newcount.",
+				pollAnswerList = '".MySQL::escape($answers)."',
 				pollType = ".$_POST['type']."
 				WHERE
 				pollID = ".$id."
 				", __FILE__, __LINE__);
-	
-	
+		
 		// Weiterleitung
 		$tmpl = new Template;
 		$tmpl->redirect('index.php?p=admin');

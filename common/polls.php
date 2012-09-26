@@ -91,6 +91,20 @@ class Polls {
 	}
 	
 	/**
+	 * Antworten auf eine Umfrage löschen
+	 * @param int $id
+	 */
+	public static function removeAnswers($id) {
+	
+		MySQL::query("
+				DELETE FROM
+				".Config::mysql_prefix."pollstatus
+				WHERE
+				pollstatus_pollID = ".$id."
+				", __FILE__, __LINE__);
+	}
+	
+	/**
 	 * Alle Umfragen laden
 	 * @return array Umfrage-Datensätze
 	 */
