@@ -771,7 +771,7 @@ class AdminPage {
 		$tmpl = new Template;
 		
 		// Zeile entfernen
-		if(isset($_GET['ajax']) AND false) { // TODO: parseerror PROBLEM
+		if(isset($_GET['ajax']) AND false) {
 			
 			$tmpl->script = '$("#poll'.$id.'").remove()';
 			$tmpl->output();
@@ -887,7 +887,7 @@ class AdminPage {
 			$newcount = 0;
 		}
 		
-		//TODO: Benachrichtigung dass Antwort gelöscht wurde
+		//TODO: Benachrichtigung das Antwort gelöscht wurde bzw. Hinweis auf neue Umfrage
 	
 		// speichern
 		MySQL::query("
