@@ -43,25 +43,29 @@ class Polls {
 				pollstatus_pollID = ".(int)$id."
 				", __FILE__, __LINE__);
 		
+		$userMap = User::getMap();
+		
 		foreach(explode(",",$answerlist) as $a) {
 			$results[$a][0] = 0;
 			$results[$a][1] = '';
 		}
 		
 		while($row = MySQL::fetch($query)) {
-			if(strpos($row->pollstatusAnswer, ","))
+			$ans = $row->pollstatusAnswer;
+			
+			if(strpos($ans, ","))
 			{
-				$answerline = explode(",",$row->pollstatusAnswer);
+				$answerline = explode(",",$ans);
 				foreach($answerline as $a) {
 					$results[$a][0]++;
 					
-					$results[$a][1] .= ($results[$a][1] == '' ? '' : ', ').User::getData($row->pollstatus_userID)->userName;
+					$results[$a][1] .= ($results[$a][1] == '' ? '' : ', ').$userMap[(int)$row->pollstatus_userID];
 				}
 			}
 			else {
-				$results[$row->pollstatusAnswer][0]++;
+				$results[$ans][0]++;
 					
-				$results[$row->pollstatusAnswer][1] .= ($results[$row->pollstatusAnswer][1] == '' ? '' : ', ').User::getData($row->pollstatus_userID)->userName;
+				$results[$ans][1] .= ($results[$ans][1] == '' ? '' : ', ').$userMap[(int)$row->pollstatus_userID];
 			}
 
 		}
@@ -88,6 +92,53 @@ class Polls {
 					 pollID = ".$id."
 					 ", __FILE__, __LINE__);
 	
+	}
+	
+	/**
+	 * Prüfen ob eine Antwort möglich ist (gegen böswillige HTTP-Pakete)
+	 * @param int $id
+	 * @param String $answer
+	 * @return boolean Gültigkeit
+	 */
+	public static function checkAnswer($id,$answer)
+	{
+		$query = MySQL::querySingle("SELECT
+							  ".Config::mysql_prefix."poll.*
+							  FROM
+							  ".Config::mysql_prefix."poll
+					 		  WHERE
+							  pollID = ".$id."
+							  ", __FILE__, __LINE__);
+		
+		if($query)
+		{
+			$validanswers = explode(",", $query->pollAnswerList);
+			
+			if(is_array($answer))
+			{
+				if($query->pollType != 1) return false;
+				
+				foreach($answer as $a)
+				{
+					if(in_array($a, $validanswers))
+						continue;
+					else
+						return false;
+				}
+				
+				return true;
+			}
+			else
+			{				
+				if(in_array($answer, $validanswers)) 
+					return true;
+				else 
+					return false;
+			}
+			
+			
+		}	
+		else return false;
 	}
 	
 	/**

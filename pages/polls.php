@@ -33,7 +33,7 @@ class PollsPage {
 		
 		$polls= Polls::getall();
 		
-		$active = (isset($_GET['active']) ? $_GET['active'] : 0);
+		$active = (isset($_GET['active']) ? (int)$_GET['active'] : 0);
 		
 		$tmpl = new Template;
 		
@@ -51,7 +51,7 @@ class PollsPage {
 				// Details
 				$tmpl->content .= '
 				<div class="polldetail" id="poll'.$p->pollID.'"'
-				.((isset($_GET['active']) AND $p->pollID == $_GET['active']) ? '' : 'style="display: none;"').'>
+				.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
 				<form class="pollform '.(($p->answer == '') ? '' : 'pupdate').'" action="index.php?p=polls&amp;sp=';
 				
 				if($p->answer == '') $tmpl->content .= 'answer';
@@ -94,7 +94,8 @@ class PollsPage {
 				
 			}
 
-			$tmpl->content .= '<div id="poll_status" class="green center"></div>';
+			$tmpl->content .= '<br/>
+			<div id="poll_status" class="center grey"></div>';
 			
 		}
 		else // no content
@@ -113,11 +114,16 @@ class PollsPage {
 			
 			$tmpl = new Template;
 			
+			$id = (int)$_POST['id'];
 			$answer = $_POST['answer'];
+			
+			General::loadClass("Polls");
+			
+			if(!Polls::checkAnswer($id, $answer))
+				Template::bakeError("Daten ungültig.");
 			
 			if(is_array($answer)) $answer = implode(",", $answer);
 			
-			$id = $_POST['id'];
 			MySQL::query("
 					INSERT INTO
 					".Config::mysql_prefix."pollstatus
@@ -127,7 +133,7 @@ class PollsPage {
 					VALUES
 					(".$id.",
 					".User::$id.",
-					'".$answer."')
+					'".MySQL::escape($answer)."')
 					", __FILE__, __LINE__);
 				
 				
@@ -140,7 +146,7 @@ class PollsPage {
 					pollID = ".$id."
 					", __FILE__, __LINE__);
 
-			$tmpl->content .= 'Antwort gespeichert.';
+			$tmpl->content = 'Antwort gespeichert.';
 				
 			$tmpl->output();
 		}
@@ -158,9 +164,13 @@ class PollsPage {
 					
 			$tmpl = new Template;
 			
-			$id = $_POST['id'];
-			
+			$id = (int)$_POST['id'];
 			$answer = $_POST['answer'];
+			
+			General::loadClass("Polls");
+			
+			if(!Polls::checkAnswer($id, $answer))
+				Template::bakeError("Daten ungültig.");
 				
 			if(is_array($answer)) $answer = implode(",", $answer);
 			
@@ -168,20 +178,20 @@ class PollsPage {
 					UPDATE
 					".Config::mysql_prefix."pollstatus
 					SET
-					pollstatusAnswer = '".$answer."'
+					pollstatusAnswer = '".MySQL::escape($answer)."'
 					WHERE
 					pollstatus_pollID = ".$id."
 					AND
 					pollstatus_userID = ".User::$id."
 					", __FILE__, __LINE__);
 			
-			$tmpl->content .= 'Antwort gespeichert.';
+			$tmpl->content = 'Antwort gespeichert.';
 			
 			$tmpl->output();
 
 		}
 		else
-			Template::bakeError("Fehler beim Speichern der Daten. ".$_GET);
+			Template::bakeError("Fehler beim Speichern der Daten.");
 	
 	}
 	
@@ -190,6 +200,10 @@ class PollsPage {
 	 * Seite auswählen, die geladen werden soll
 	 */
 	public static function dispatch() {
+		
+		if(!User::$login) {
+			Template::bakeError('Du bist nicht eingeloggt!');
+		}
 		
 		if(isset(self::$actions[$_GET['sp']])) {
 			$action = self::$actions[$_GET['sp']];

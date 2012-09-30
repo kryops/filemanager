@@ -765,13 +765,17 @@ class AdminPage {
 	
 		General::loadClass('Polls');
 	
-		Polls::delete($id);
+		if(Polls::get($id))
+			Polls::delete($id);
+		else {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
 		
 		// Ausgabe
 		$tmpl = new Template;
 		
 		// Zeile entfernen
-		if(isset($_GET['ajax']) AND false) {
+		if(isset($_GET['ajax'])) {
 			
 			$tmpl->script = '$("#poll'.$id.'").remove()';
 			$tmpl->output();
@@ -781,8 +785,6 @@ class AdminPage {
 		else {
 			$tmpl->redirect('index.php?p=admin');
 		}
-	
-		$tmpl->output();
 	
 	}
 	
@@ -867,16 +869,22 @@ class AdminPage {
 		}
 	
 		$id = (int)$_GET['id'];
-		$answers = str_replace("\r\n", "", $_POST['answers']);
+		
+		General::loadClass("Polls");
+		
+		$old = Polls::get($id);
+		
+		if(!$old) {
+			Template::bakeError('Umfrage existiert nicht!');
+		}
+		
+		$answers = str_replace("\r", "", $_POST['answers']);
+		$answers = str_replace("\n", "", $_POST['answers']);
 		$end = strtotime($_POST['end']);
 		
 		if(!$end OR $_POST['end'] != General::formatDate($end)) {
 			Template::bakeError('Datum ungültig!');
 		}
-		
-		General::loadClass("Polls");
-		
-		$old = Polls::get($id);
 		
 		// veraltete Antworten löschen
 		$newcount = $old->pollAnswerCount;
@@ -1270,7 +1278,7 @@ class AdminPage {
 		// Benutzer löschen
 		MySQL::query("
 			DELETE FROM
-				".Config::mysql_prefix."user
+				".C,onfig::mysql_prefix."user
 			WHERE
 				userID = ".$id."
 		", __FILE__, __LINE__);

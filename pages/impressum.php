@@ -27,7 +27,7 @@ class ImpressumPage {
 	<br />
 	
 	<p>
-	Umfragemodul von Ernesto Elsäßer.
+	Umfragemodul von Ernesto Els&auml;&szlig;er.
 	<br />
 	Einige Icons von <a href="http://p.yusukekamiyamane.com/" target="_blank" class="italic">Yusuke Kamiyamane</a>. Alle Rechte vorbehalten.
 	<br />
