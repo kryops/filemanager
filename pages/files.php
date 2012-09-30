@@ -784,6 +784,8 @@ class FilesPage {
 		$filename = md5(microtime(true)).'.zip';
 		
 		// Zip-Achiv erzeugen
+		@ini_set('memory_limit', '512M');
+		
 		$zip = new ZipArchive();
 		
 		if($zip->open('./files/'.$filename, ZipArchive::CREATE)) {
