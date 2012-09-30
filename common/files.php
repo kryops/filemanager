@@ -271,7 +271,9 @@ class Files {
 	 * @return Datei-Endung
 	 */
 	public static function getFileType($filename) {
-		return strtolower(array_pop(explode('.', $filename)));
+		$filename = explode('.', $filename);
+		$filename = array_pop($filename);
+		return strtolower($filename);
 	}
 	
 	
