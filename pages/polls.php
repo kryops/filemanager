@@ -36,70 +36,69 @@ class PollsPage {
 		$active = (isset($_GET['active']) ? (int)$_GET['active'] : 0);
 		
 		$tmpl = new Template;
-		
-		if(Polls::$pollcount) {
+
+		foreach($polls as $p) {
 			
-			foreach($polls as $p) {
-				
-				$tmpl->content .= '
-				<a href="index.php?p=polls'.($active != $p->pollID ? '&amp;active='.$p->pollID : '').'" id="pollhead'.$p->pollID.'" 
-				class="poll '.(($p->answer == '') ? 'bold' : 'grey').'" data-id='.$p->pollID.' data-expanded=0 >'
-					.$p->pollTitle.' (bis '.General::formatDate($p->pollEndDate).')
-				</a>
-				';
+			if($p->pollEndDate < time()) continue;
+			
+			$tmpl->content .= '
+			<a href="index.php?p=polls'.($active != $p->pollID ? '&amp;active='.$p->pollID : '').'" id="pollhead'.$p->pollID.'" 
+			class="poll '.(($p->answer == '') ? 'bold' : 'grey').'" data-id='.$p->pollID.' data-expanded=0 >'
+				.$p->pollTitle.' (bis '.General::formatDate($p->pollEndDate).')
+			</a>
+			';
 
-				// Details
+			// Details
+			$tmpl->content .= '
+			<div class="polldetail" id="poll'.$p->pollID.'"'
+			.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
+			<form class="pollform '.(($p->answer == '') ? '' : 'pupdate').'" action="index.php?p=polls&amp;sp=';
+			
+			if($p->answer == '') $tmpl->content .= 'answer';
+			else $tmpl->content .= 'update';
+				
+			$tmpl->content .= '" method="post" enctype="multipart/form-data">';
+				
+			// Liste mit möglichen Antworten erzeugen
+			$answerlist = explode(",", $p->pollAnswerList);
+			$i = 0;
+				
+			foreach($answerlist as $a) {
 				$tmpl->content .= '
-				<div class="polldetail" id="poll'.$p->pollID.'"'
-				.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
-				<form class="pollform '.(($p->answer == '') ? '' : 'pupdate').'" action="index.php?p=polls&amp;sp=';
-				
-				if($p->answer == '') $tmpl->content .= 'answer';
-				else $tmpl->content .= 'update';
-					
-				$tmpl->content .= '" method="post" enctype="multipart/form-data">';
-					
-				// Liste mit möglichen Antworten erzeugen
-				$answerlist = explode(",", $p->pollAnswerList);
-				$i = 0;
-					
-				foreach($answerlist as $a) {
-					$tmpl->content .= '
-					<div class="pollopt">
-					<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.$a.'"';
+				<div class="pollopt">
+				<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.$a.'"';
 
-					if($p->pollType == 0 && $p->answer == $a) $tmpl->content .= ' checked="yes"';
-					
-					if($p->pollType == 1 && $p->answer != '' && in_array($a, explode(",", $p->answer)))
-							$tmpl->content .= ' checked="yes"';
-					
-					$tmpl->content .= '/>  '.$a.'
-					</div>';
-					
-					$i++;
-				}
+				if($p->pollType == 0 && $p->answer == $a) $tmpl->content .= ' checked="yes"';
 				
-				$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">
-				<input type="submit" id="pb'.$p->pollID.'" class="button wide ';
+				if($p->pollType == 1 && $p->answer != '' && in_array($a, explode(",", $p->answer)))
+						$tmpl->content .= ' checked="yes"';
 				
-				if($p->answer == '')
-					$tmpl->content .= 'pbanswer" value="Abstimmen"';
-				else 
-					$tmpl->content .= 'pbupdate" value="Ändern"';
+				$tmpl->content .= '/>  '.$a.'
+				</div>';
 				
-				$tmpl->content .= '/>
-				</form>
-				</div>
-				';
-				
+				$i++;
 			}
-
-			$tmpl->content .= '<br/>
-			<div id="poll_status" class="center grey"></div>';
 			
-		}
-		else // no content
-			$tmpl->content .= '<div class="center">Keine Umfragen</div>';
+			$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">
+			<input type="submit" id="pb'.$p->pollID.'" class="button wide ';
+			
+			if($p->answer == '')
+				$tmpl->content .= 'pbanswer" value="Abstimmen"';
+			else 
+				$tmpl->content .= 'pbupdate" value="Ändern"';
+			
+			$tmpl->content .= '/>
+			</form>
+			</div>
+			';
+			
+		}	
+
+		if($tmpl->content == '') 
+			$tmpl->content = '<div class="center grey">Keine Umfragen</div>';
+		else 
+			$tmpl->content .= '<br/>
+		<div id="poll_status" class="center grey"></div>';
 
 		$tmpl->output();
 		

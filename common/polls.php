@@ -7,11 +7,10 @@ if(!defined('FILEMANAGER')) {
 
 class Polls {
 
-	public static $pollcount = 0;
-	
 	/**
 	 * Den Datensatz einer Umfrage laden
 	 * @param int $id
+	 * @return object Umfrage-Datensatz
 	 */
 	public static function get($id) {
 	
@@ -29,6 +28,7 @@ class Polls {
 	/**
 	 * Die Ergebnisse einer Umfrage laden
 	 * @param int $id
+	 * @return array Zweidimensionales Array dessen Schlüssel die Antworten der Umfrage sind
 	 */
 	public static function getResults($id, $answerlist) {
 	
@@ -160,10 +160,8 @@ class Polls {
 	 * @return array Umfrage-Datensätze
 	 */
 	public static function getall() {
-
-		$polls = array();
 		
-		$query = MySQL::query("
+		return MySQL::queryArray("
 			SELECT
 				".Config::mysql_prefix."poll.*,
 				pollstatusAnswer AS answer
@@ -173,21 +171,6 @@ class Polls {
 				ON pollstatus_pollID = pollID AND pollstatus_userID = ".User::$id."
 		", __FILE__, __LINE__);
 		
-		while($row = MySQL::fetch($query)) {
-			if($row->pollEndDate > time()) {
-				$polls[] = $row;
-				self::$pollcount += 1;
-			}
-		}
-		
-		return $polls;
-	}
-	
-	/**
-	 * pollcount getter
-	 */
-	public static function getCount() {
-		return self::$pollcount;
 	}
 	
 }
