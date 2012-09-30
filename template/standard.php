@@ -46,6 +46,12 @@ header("Content-Type: text/html");
 		
 		// Benutzer eingeloggt
 		array(
+				'polls',
+				'umfragen.png',
+				'Umfragen',
+				User::$login
+		),
+		array(
 			'files',
 			'dateien.png',
 			'Dateien',

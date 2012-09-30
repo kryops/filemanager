@@ -255,6 +255,72 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 	
+	// Umfragen auf und zuklappen
+	$(document).on('click', '.poll', function(e) {
+		
+		// Ziel-ID ermitteln
+		var id = $(this).data('id');
+		
+		if(id === null) {
+			return false;
+		}
+		
+		var target = $('#poll'+id);
+		
+		var expanded = $(this).data('expanded') ? 0 : 1;
+		$(this).data('expanded', expanded);
+
+		//ajaxController.call('index.php?p=polls&sp=expand', target, {'id':id, 'toggle':toggle}, false);
+		
+		target.slideToggle(300);
+		
+		e.preventDefault();
+	});
+	
+	// Umfrage beantworten
+	$(document).on('submit', '.pollform', function(e) {
+
+		var id = this[this.length-2].value;
+		
+		if($(this).serialize().substring(0,6) == 'answer')
+		{
+			var head = $('#pollhead'+id)[0];		
+			head.className = "poll grey"; // Text ausgrauen
+			var expanded = $(head).data('expanded') ? 0 : 1;
+			$(head).data('expanded', expanded);
+			
+			$('#poll'+id).slideToggle(300);
+			
+			$('#pb'+id)[0].className = "button wide pbupdate";
+			
+			ajaxController.call(
+				$(this).attr('action'),
+				$('#poll_status'),
+				$(this).serialize(),
+				!$(this).data('error')
+			);
+		}
+		
+		e.preventDefault();
+	});
+	
+	// Klick auf Link abfangen
+	$(document).on('click', '.noclick', function(e) {
+		
+		e.preventDefault();
+	});
+	
+	
+	// Antwort auswählen
+	$(document).on('click', '.pollopt', function(e) {
+		
+		if(this.firstElementChild.type == "checkbox")
+			this.firstElementChild.checked = !this.firstElementChild.checked;
+		else // radio button
+			this.firstElementChild.checked = true;
+
+	});
+	
 	// Wurzelordner ändern
 	$('#select_topfolder').change(function() {
 		url('index.php?p=files&top='+$(this).val());

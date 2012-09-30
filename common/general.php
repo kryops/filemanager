@@ -19,6 +19,7 @@ class General {
 	 * Wert: Name der Klasse, von welcher die dispatch()-Funktion aufgerufen wird
 	 */
 	public static $pages = array(
+		'polls' => 'PollsPage',
 		'files' => 'FilesPage',
 		'login' => 'LoginPage',
 		'register' => 'RegisterPage',
@@ -114,6 +115,15 @@ class General {
 			return (microtime(true)-self::$loadtime);
 		}
 		
+	}
+	
+	/**
+	 * Datum formatieren
+	 * @param int $date Unix-Timestamp
+	 * @return string formatiertes Datum
+	 */
+	public static function formatDate($date) {
+		return strftime('%d.%m.%Y', $date);
 	}
 	
 }

@@ -18,7 +18,7 @@ a {
 
 form {
 	margin:0;
-	poadding:0;
+	padding:0;
 }
 
 p {
@@ -549,3 +549,95 @@ label {
 	
 }
 
+/* Umfragen */
+
+.poll {
+	display:block;
+	background-color:#e6e6e6;
+	padding: 10px 15px 10px 15px;
+	margin-top: 10px;
+	margin-left: auto;
+	margin-right: auto;
+	font-size:95%;
+	cursor:pointer;
+	border:none;
+	max-width: 600px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	-o-border-radius:10px;
+	border-radius:10px;
+}
+
+
+.poll:hover, .poll.active {
+	background-color:#dcdcdc;
+}
+
+.grey {
+	color: #555;
+}
+
+.polldetail {
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 10px;
+}
+
+.pollopt {
+	padding: 2px 5px 2px 5px;
+	margin-bottom: 5px;
+	font-size: 85%;
+	cursor: pointer;
+}
+
+.pollopt:hover {
+	background-color:#dcdcdc;
+}
+
+.pbanswer{
+	background-color:#9aff9a;
+}
+
+.pbupdate{
+	background-color:#fe7;
+}
+
+#poll_status {
+	margin: 10px 0px 10px 15px;
+	font-size: 85%;
+}
+
+.polltable {
+	width: 90%;
+	text-align: left;
+	border-spacing: 4px;
+}
+
+.pt_title {
+	/*max-width: 250px;*/
+	width: 150px;
+	text-align: center;
+}
+
+.pt_bar {
+    display: block;
+    margin: 0px;
+    width: 100%;
+    border: 1px solid black;
+ }
+ 
+.pt_bar .thebar{
+    display: block;
+    text-align: right;
+    color: #555;
+    margin: 0px; 
+    background-color: #dcdcdc; 
+ }
+
+.pt_users {
+	width: 10px;
+	padding-left: 5px;
+	padding-top: 4px;
+	vertical-align: top;
+}

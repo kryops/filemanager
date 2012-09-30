@@ -45,6 +45,31 @@ class User {
 		
 	}
 	
+	/**
+	 * Gibt eine Map zurück, deren Schlüssel User IDs und deren Werte die zugehörigen Namen sind
+	 * @return Map Map die IDs Benutzernamen zuordnet
+	 */
+	public static function getMap() {
+	
+		$query = MySQL::query("
+				SELECT
+				*
+				FROM
+				".Config::mysql_prefix."user
+				", __FILE__, __LINE__);
+		
+		$map = array();
+		
+		if($query) {
+			while($row = MySQL::fetch($query)) {
+				$map[$row->userID] = $row->userName;
+			}
+		}
+		
+		return $map;
+	
+	}
+	
 	
 	/**
 	 * Überprüft anhand von Session und Cookie, ob der Benutzer eingeloggt ist
