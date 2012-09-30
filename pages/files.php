@@ -784,7 +784,7 @@ class FilesPage {
 		$filename = md5(microtime(true)).'.zip';
 		
 		// Zip-Achiv erzeugen
-		@ini_set('memory_limit', '512M');
+		@ini_set('memory_limit', '768M');
 		
 		$zip = new ZipArchive();
 		
@@ -795,7 +795,10 @@ class FilesPage {
 			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
 			
 			foreach ($iterator as $key=>$value) {
-				$zip->addFile(realpath($key), $key) or die ("ERROR: Could not add file: $key");
+				$fn = $value->getFileName();
+				if($fn != '.' AND $fn != '..') {
+					$zip->addFile(realpath($key), $key) or die ("ERROR: Could not add file: $key");
+				}
 			}
 			
 		    $zip->close();
