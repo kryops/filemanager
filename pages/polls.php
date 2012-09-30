@@ -44,7 +44,7 @@ class PollsPage {
 			$tmpl->content .= '
 			<a href="index.php?p=polls'.($active != $p->pollID ? '&amp;active='.$p->pollID : '').'" id="pollhead'.$p->pollID.'" 
 			class="poll '.(($p->answer == '') ? 'bold' : 'grey').'" data-id='.$p->pollID.' data-expanded=0 >'
-				.$p->pollTitle.' (bis '.General::formatDate($p->pollEndDate).')
+				.h($p->pollTitle).' (bis '.General::formatDate($p->pollEndDate).')
 			</a>
 			';
 
@@ -66,14 +66,14 @@ class PollsPage {
 			foreach($answerlist as $a) {
 				$tmpl->content .= '
 				<div class="pollopt">
-				<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.$a.'"';
+				<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.h($a).'"';
 
 				if($p->pollType == 0 && $p->answer == $a) $tmpl->content .= ' checked="yes"';
 				
 				if($p->pollType == 1 && $p->answer != '' && in_array($a, explode(",", $p->answer)))
 						$tmpl->content .= ' checked="yes"';
 				
-				$tmpl->content .= '/>  '.$a.'
+				$tmpl->content .= '/>  '.h($a).'
 				</div>';
 				
 				$i++;
@@ -85,7 +85,7 @@ class PollsPage {
 			if($p->answer == '')
 				$tmpl->content .= 'pbanswer" value="Abstimmen"';
 			else 
-				$tmpl->content .= 'pbupdate" value="Ändern"';
+				$tmpl->content .= 'pbupdate" value="&Auml;ndern"';
 			
 			$tmpl->content .= '/>
 			</form>
@@ -122,6 +122,23 @@ class PollsPage {
 				Template::bakeError("Daten ungültig.");
 			
 			if(is_array($answer)) $answer = implode(",", $answer);
+			
+			
+			// doppelt abgestimmt?
+			$doppelt = MySQL::querySingle("
+				SELECT
+					pollstatus_userID
+				FROM
+					".Config::mysql_prefix."pollstatus
+				WHERE
+					pollstatus_pollID = ".$id."
+					AND pollstatus_userID = ".User::$id."
+			", __FILE__, __LINE__);
+			
+			if($doppelt) {
+				Template::bakeError('Du hast bereits abgestimmt!');
+			}
+			
 			
 			MySQL::query("
 					INSERT INTO
