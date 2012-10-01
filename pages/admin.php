@@ -1300,7 +1300,7 @@ class AdminPage {
 		// Benutzer löschen
 		MySQL::query("
 			DELETE FROM
-				".C,onfig::mysql_prefix."user
+				".Config::mysql_prefix."user
 			WHERE
 				userID = ".$id."
 		", __FILE__, __LINE__);
