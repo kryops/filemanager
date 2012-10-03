@@ -139,7 +139,7 @@ class RegisterPage {
 				".Config::mysql_prefix."user
 			SET
 				userName = '".MySQL::escape($_POST['username'])."',
-				userPassword = '".User::encryptPassword($_POST['pw1'])."',
+				userPassword = '".MySQL::escape(User::encryptPassword($_POST['pw1']))."',
 				userEmail = '".MySQL::escape($_POST['email'])."',
 				userOnline = ".time().",
 				userAdmin = ".$admin."
