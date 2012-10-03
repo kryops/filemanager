@@ -256,6 +256,11 @@ class Files {
 				".implode(" AND ", $conds);
 		}
 		
+		$sql .= "
+			ORDER BY
+				filesName ASC
+		";
+		
 		$query = MySQL::query($sql, __FILE__, __LINE__);
 		
 		while($row = MySQL::fetch($query)) {
