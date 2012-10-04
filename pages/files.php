@@ -471,7 +471,7 @@ class FilesPage {
 				Template::bakeError('Du hast keine Berechtigung!');
 			}
 			
-			$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
+			$path = './files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath);
 			
 			@unlink($path);
 			@unlink('./thumbnails/'.$id.'.jpg');
@@ -563,7 +563,7 @@ class FilesPage {
 			
 			// Datei verschieben
 			@rename(
-				utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath),
+				'./files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath),
 				$destination
 			);
 		
@@ -604,7 +604,7 @@ class FilesPage {
 		}
 		
 		// herunterladen
-		$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
+		$path = './files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath);
 		
 		header('Content-Type: application/octet-stream');
 		header('Content-Disposition: attachment; filename="'.$file->filesName.'"');
