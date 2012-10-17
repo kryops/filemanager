@@ -878,6 +878,16 @@ class AdminPage {
 			Template::bakeError('Umfrage existiert nicht!');
 		}
 		
+		if(trim($_POST['title']) == '') {
+			Template::bakeError('Kein Titel eingegeben!');
+		}
+		
+		$_POST['answers'] = Polls::validateAnswerList($_POST['answers']);
+		
+		if(trim($_POST['answers']) == '') {
+			Template::bakeError('Keine Antworten eingegeben!');
+		}
+		
 		$answers = str_replace("\r", "", $_POST['answers']);
 		$answers = str_replace("\n", "", $_POST['answers']);
 		$end = strtotime($_POST['end']);
@@ -989,6 +999,18 @@ class AdminPage {
 			Template::bakeError('Datum ungültig!');
 		}
 		
+		if(trim($_POST['title']) == '') {
+			Template::bakeError('Kein Titel eingegeben!');
+		}
+		
+		General::loadClass("Polls");
+		
+		$_POST['answers'] = Polls::validateAnswerList($_POST['answers']);
+		
+		if(trim($_POST['answers']) == '') {
+			Template::bakeError('Keine Antworten eingegeben!');
+		}
+		
 		MySQL::query("
 				INSERT INTO
 				".Config::mysql_prefix."poll
@@ -997,7 +1019,7 @@ class AdminPage {
 				pollStartDate = ".time().",
 				pollEndDate = ".$end.",
 				pollAnswerCount = 0,
-				pollAnswerList = '".MySQL::escape(str_replace("\r\n", "",$_POST['answers']))."',
+				pollAnswerList = '".MySQL::escape(str_replace(array("\r\n", "\n"), "", $_POST['answers']))."',
 				pollType = ".(int)$_POST['type']."
 				", __FILE__, __LINE__);
 	
@@ -1055,7 +1077,7 @@ class AdminPage {
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title">'.$a.'</td>
+				<td class="pt_title">'.h($a).'</td>
 				<td class="pt_bar">
 					<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
 					&nbsp;'.$results[$a][0].'&nbsp;
@@ -1278,7 +1300,7 @@ class AdminPage {
 		// Benutzer löschen
 		MySQL::query("
 			DELETE FROM
-				".C,onfig::mysql_prefix."user
+				".Config::mysql_prefix."user
 			WHERE
 				userID = ".$id."
 		", __FILE__, __LINE__);

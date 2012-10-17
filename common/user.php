@@ -165,7 +165,9 @@ class User {
 			FROM
 				".Config::mysql_prefix."user
 			WHERE
-				userName = '".MySQL::escape($username)."'
+				(userName = '".MySQL::escape($username)."'
+					OR
+				userEmail = '".MySQL::escape($username)."')
 				AND userPassword = '".MySQL::escape(self::encryptPassword($password))."'
 		", __FILE__, __LINE__);
 		

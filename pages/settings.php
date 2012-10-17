@@ -116,7 +116,7 @@ class SettingsPage {
 			SET
 				userEmail = '".MySQL::escape($_POST['email'])."',
 				userEmailNotification = ".$notifications.",
-				userPassword = '".$pw."'
+				userPassword = '".MySQL::escape($pw)."'
 			WHERE
 				userID = ".User::$id."
 		", __FILE__, __LINE__);

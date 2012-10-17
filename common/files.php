@@ -256,6 +256,11 @@ class Files {
 				".implode(" AND ", $conds);
 		}
 		
+		$sql .= "
+			ORDER BY
+				filesName ASC
+		";
+		
 		$query = MySQL::query($sql, __FILE__, __LINE__);
 		
 		while($row = MySQL::fetch($query)) {
@@ -271,7 +276,9 @@ class Files {
 	 * @return Datei-Endung
 	 */
 	public static function getFileType($filename) {
-		return strtolower(array_pop(explode('.', $filename)));
+		$filename = explode('.', $filename);
+		$filename = array_pop($filename);
+		return strtolower($filename);
 	}
 	
 	

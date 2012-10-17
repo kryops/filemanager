@@ -471,7 +471,7 @@ class FilesPage {
 				Template::bakeError('Du hast keine Berechtigung!');
 			}
 			
-			$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
+			$path = './files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath);
 			
 			@unlink($path);
 			@unlink('./thumbnails/'.$id.'.jpg');
@@ -563,7 +563,7 @@ class FilesPage {
 			
 			// Datei verschieben
 			@rename(
-				utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath),
+				'./files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath),
 				$destination
 			);
 		
@@ -604,7 +604,7 @@ class FilesPage {
 		}
 		
 		// herunterladen
-		$path = utf8_decode('./files/'.Folder::getFolderPath($file->files_folderID).$file->filesPath);
+		$path = './files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath);
 		
 		header('Content-Type: application/octet-stream');
 		header('Content-Disposition: attachment; filename="'.$file->filesName.'"');
@@ -784,6 +784,8 @@ class FilesPage {
 		$filename = md5(microtime(true)).'.zip';
 		
 		// Zip-Achiv erzeugen
+		@ini_set('memory_limit', '768M');
+		
 		$zip = new ZipArchive();
 		
 		if($zip->open('./files/'.$filename, ZipArchive::CREATE)) {
@@ -793,7 +795,10 @@ class FilesPage {
 			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
 			
 			foreach ($iterator as $key=>$value) {
-				$zip->addFile(realpath($key), $key) or die ("ERROR: Could not add file: $key");
+				$fn = $value->getFileName();
+				if($fn != '.' AND $fn != '..') {
+					$zip->addFile(realpath($key), $key) or die ("ERROR: Could not add file: $key");
+				}
 			}
 			
 		    $zip->close();
