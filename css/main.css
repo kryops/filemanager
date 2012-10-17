@@ -603,6 +603,10 @@ label {
 	background-color:#fe7;
 }
 
+.pbresultnew {
+	margin-left: 5px;
+}
+
 #poll_status {
 	margin: 10px 0px 10px 15px;
 	font-size: 85%;
@@ -618,6 +622,7 @@ label {
 	/*max-width: 250px;*/
 	width: 150px;
 	text-align: center;
+	border-bottom: 1px solid #ccc;
 }
 
 .pt_bar {

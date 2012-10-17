@@ -284,14 +284,26 @@ $(document).ready(function() {
 		
 		if($(this).serialize().substring(0,6) == 'answer')
 		{
-			var head = $('#pollhead'+id)[0];		
-			head.className = "poll grey"; // Text ausgrauen
-			var expanded = $(head).data('expanded') ? 0 : 1;
+			var head = $('#pollhead'+id)[0];
+			var body = $('#poll'+id);
+			var button = $('#pb'+id);
+			
+			if(head.className == "poll bold") // Umfrage war neu
+			{
+				// Text ausgrauen
+				head.className = "poll grey";
+				 // Button gelb färben
+				button[0].className = "button wide pbupdate";
+				// Button-Text ändern
+				button[0].value = "Ändern";
+				// Ergebnis-Button anzeigen
+				// TODO: work-around pbresultnew ersetzen
+				button.after('<a href="index.php?p=polls&amp;sp=results&amp;id=' + id + '" class="button wide pbresultnew">Ergebnisse</a>');
+			}
+			
+			var expanded = $(head).data('expanded') ? 0 : 1; // Umfrage zuklappen
 			$(head).data('expanded', expanded);
-			
-			$('#poll'+id).slideToggle(300);
-			
-			$('#pb'+id)[0].className = "button wide pbupdate";
+			body.slideToggle(300);
 			
 			ajaxController.call(
 				$(this).attr('action'),
