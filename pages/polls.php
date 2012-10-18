@@ -16,7 +16,8 @@ class PollsPage {
 	public static $actions = array(
 		'' => 'displayOverview',
 		'answer' => 'saveAnswer',
-		'update' => 'updateAnswer'
+		'update' => 'updateAnswer',
+		'results' => 'displayPollResults'
 	);
 	
 	/*
@@ -52,7 +53,7 @@ class PollsPage {
 			$tmpl->content .= '
 			<div class="polldetail" id="poll'.$p->pollID.'"'
 			.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
-			<form class="pollform '.(($p->answer == '') ? '' : 'pupdate').'" action="index.php?p=polls&amp;sp=';
+			<form class="pollform" action="index.php?p=polls&amp;sp=';
 			
 			if($p->answer == '') $tmpl->content .= 'answer';
 			else $tmpl->content .= 'update';
@@ -79,15 +80,17 @@ class PollsPage {
 				$i++;
 			}
 			
-			$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">
-			<input type="submit" id="pb'.$p->pollID.'" class="button wide ';
+			$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">';
 			
 			if($p->answer == '')
-				$tmpl->content .= 'pbanswer" value="Abstimmen"';
+				$tmpl->content .= '
+				<input type="submit" id="pb'.$p->pollID.'" class="button wide pbanswer" value="Abstimmen" />';
 			else 
-				$tmpl->content .= 'pbupdate" value="&Auml;ndern"';
-			
-			$tmpl->content .= '/>
+				$tmpl->content .= '
+				<input type="submit" id="pb'.$p->pollID.'" class="button wide pbupdate" value="Ändern" />
+				<a href="index.php?p=polls&amp;sp=results&amp;id='.$p->pollID.'" class="button wide">Ergebnisse</a>'; // link in form ok?
+
+			$tmpl->content .= '
 			</form>
 			</div>
 			';
@@ -211,6 +214,81 @@ class PollsPage {
 	
 	}
 	
+	/**
+	 * Ergebnisse einer Umfrage anzeigen
+	 */
+	public static function displayPollResults() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+	
+		$p = Polls::get($id);
+	
+		if(!$p) {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+		
+		if(!Polls::hasAnswered($id)) {
+			Template::bakeError('Bitte stimme zuerst selbst ab!');
+		}
+		
+		$results = Polls::getResults($id,$p->pollAnswerList);
+		
+		$tmpl = new Template;
+		$tmpl->title = 'Ergebnisse';
+	
+		$tmpl->content = '
+	
+		<div class="center">
+	
+		<h1>'.$p->pollTitle.'</h1>
+		';
+	
+		switch($p->pollAnswerCount) {
+			case 0: $tmpl->content .= '<p>Es hat noch niemand abgestimmt.</p>'; break;
+			case 1: $tmpl->content .= '<p>Es hat bereits eine Person abgestimmt.</p>'; break;
+			default: $tmpl->content .= '<p>Es haben bereits '.$p->pollAnswerCount.' Personen abgestimmt.</p>';
+		}
+			
+		if($p->pollAnswerCount > 0)
+		{
+			$tmpl->content .= '
+			<table class="polltable center">
+			<tbody>';
+				
+			foreach(explode(",", $p->pollAnswerList) as $a)
+			{
+				$tmpl->content .= '
+				<tr>
+				<td class="pt_title">'.$a.'</td>
+				<td class="pt_bar">
+				<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
+				&nbsp;'.$results[$a][0].'&nbsp;
+				</div>
+				</td>
+				</tr>'; // nur Admins können sehen wer für was gestimmt hat
+			}
+				
+			$tmpl->content .= '
+			</tbody>
+			</table>';
+		}
+	
+		$tmpl->content .= '
+		<br/>
+		<p><a class="button wide" href="index.php?p=polls">Zurück</a></p>
+	
+		</div>
+		';
+	
+		$tmpl->output();
+	
+	}
 	
 	/**
 	 * Seite auswählen, die geladen werden soll

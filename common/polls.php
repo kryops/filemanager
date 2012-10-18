@@ -156,7 +156,7 @@ class Polls {
 	}
 	
 	/**
-	 * Alle Umfragen laden
+	 * Alle Umfragen (ggf. mit Antworten des aktuellen Benutzers) laden
 	 * @return array Umfrage-Datensätze
 	 */
 	public static function getall() {
@@ -172,7 +172,25 @@ class Polls {
 		", __FILE__, __LINE__);
 		
 	}
+
+	/**
+	 * Prüft, ob der aktuelle Benutzer eine Umfrage bereits beantwortet hat
+	 * @param int $id
+	 * @return boolean Ergebnis
+	 */
+	public static function hasAnswered($id) {
 	
+		$query = MySQL::querySingle("
+				SELECT
+				".Config::mysql_prefix."pollstatus.*
+				FROM
+				".Config::mysql_prefix."pollstatus
+				WHERE pollstatus_pollID = ".$id." AND pollstatus_userID = ".User::$id."
+				", __FILE__, __LINE__);
+		
+		return ($query) ? true : false;
+		
+	}
 	
 	/**
 	 * Entfernt leere Antworten aus einer eingegebenen Antwortliste
