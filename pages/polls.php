@@ -246,7 +246,7 @@ class PollsPage {
 	
 		<div class="center">
 	
-		<h1>'.$p->pollTitle.'</h1>
+		<h1>'.h($p->pollTitle).'</h1>
 		';
 	
 		switch($p->pollAnswerCount) {
@@ -265,7 +265,7 @@ class PollsPage {
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title">'.$a.'</td>
+				<td class="pt_title">'.h($a).'</td>
 				<td class="pt_bar">
 				<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
 				&nbsp;'.$results[$a][0].'&nbsp;
