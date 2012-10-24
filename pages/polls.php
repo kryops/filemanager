@@ -95,11 +95,25 @@ class PollsPage {
 			if($p->answer == '')
 				$tmpl->content .= '
 				<input type="submit" id="pb'.$p->pollID.'" class="button wide pbanswer" value="Abstimmen" />';
-			else 
+			else
+			{
 				$tmpl->content .= '
 				<input type="submit" id="pb'.$p->pollID.'" class="button wide pbupdate" value="Ändern" />
-				<a href="index.php?p=polls&amp;sp=results&amp;id='.$p->pollID.'" class="button wide">Ergebnisse</a>'; // link in form ok?
-
+				';
+				
+				// Mac/iOS formatiert <input> submits automatisch und unumgänglich selbst
+				// <input> button wird genau so formattiert, <a> nicht
+				// Problem: Mac/iOS + kein JS = keine Ergebnisse
+				// TODO: bessere Lösung finden
+				
+				if(strpos($_SERVER['HTTP_USER_AGENT'], 'Mac'))
+					$tmpl->content .= '<input type="button" class="button wide" value="Ergebnisse" 
+										onclick="location.href=\'index.php?p=polls&amp;sp=results&amp;id='.$p->pollID.'\'"/>';
+				else
+					$tmpl->content .= '<a href="index.php?p=polls&amp;sp=results&amp;id='.$p->pollID.'" class="button wide">Ergebnisse</a>';
+			
+			}
+				
 			$tmpl->content .= '
 			</form>
 			</div>
@@ -230,7 +244,7 @@ class PollsPage {
 			Template::bakeError('Die Umfrage existiert nicht!');
 		}
 		
-		if(!Polls::hasAnswered($id)) {
+		if(!Polls::hasAnswered(null, $id)) {
 			Template::bakeError('Bitte stimme zuerst selbst ab!');
 		}
 		

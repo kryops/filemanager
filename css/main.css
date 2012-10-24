@@ -537,18 +537,6 @@ label {
 	}
 }
 
-@media screen and (max-width:310px) {
-	
-	.formtable {
-		font-size:87.5%;
-	}
-	
-	.text {
-		width:120px;
-	}
-	
-}
-
 /* Umfragen */
 
 .poll {
@@ -601,19 +589,20 @@ label {
 	background-color:#dcdcdc;
 }
 
-.pbanswer{
+.polldetail .button{
 	margin-top: 15px;
+}
+
+.pbanswer{
 	background-color:#9aff9a;
 }
 
 .pbupdate{
-	margin-top: 15px;
 	background-color:#fe7;
 }
 
-.pbresultnew {
-	margin-top: 15px;
-	margin-left: 5px;
+.hadjust{
+	margin-left: 6px;
 }
 
 #poll_status {
@@ -670,4 +659,17 @@ label {
 
 .vadjust {
 	margin-top: 10px;
+}
+
+
+@media screen and (max-width:310px) {
+	
+	.formtable {
+		font-size:87.5%;
+	}
+	
+	.text {
+		width:120px;
+	}
+	
 }
