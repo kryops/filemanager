@@ -282,7 +282,7 @@ $(document).ready(function() {
 
 		var id = this[this.length-2].value;
 		
-		if($(this).serialize().substring(0,6) == 'answer')
+		if($(this).serialize().substring(0,6) == 'option')
 		{
 			var head = $('#pollhead'+id)[0];
 			var body = $('#poll'+id);
@@ -312,6 +312,48 @@ $(document).ready(function() {
 				!$(this).data('error')
 			);
 		}
+		
+		e.preventDefault();
+	});
+	
+	// Antwortfelder hinzufügen
+	$(document).on('click', '#plusopt', function(e) {
+		
+		var optc = $('#optioncount').attr("value");
+		
+		if(optc === null) {
+			return false;
+		}
+		
+		var before = optc-1;
+		
+		$('#opt' + before).after('<tr id="opt' + optc +'"> \
+		<td><input type="text" class="text" name="option[' + optc + ']" value="" /></td> \
+		<td><textarea rows=2 cols=30  class="text" name="optiondesc[' + optc + ']" ></textarea></td> \
+		</tr>');
+		
+		optc++;
+		
+		$('#optioncount').attr("value",optc);
+		
+		e.preventDefault();
+	});
+	
+	// Antwortfelder entfernen
+	$(document).on('click', '#minusopt', function(e) {
+		
+		
+		var optc = $('#optioncount').attr("value");
+		
+		if(optc === null) {
+			return false;
+		}
+
+		optc--;
+		
+		$('#opt' + optc).remove();
+		
+		$('#optioncount').attr("value",optc);
 		
 		e.preventDefault();
 	});

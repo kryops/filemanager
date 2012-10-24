@@ -53,6 +53,9 @@ class PollsPage {
 			$tmpl->content .= '
 			<div class="polldetail" id="poll'.$p->pollID.'"'
 			.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
+			
+			<p>'.$p->pollDescription.'</p>
+			
 			<form class="pollform" action="index.php?p=polls&amp;sp=';
 			
 			if($p->answer == '') $tmpl->content .= 'answer';
@@ -61,23 +64,27 @@ class PollsPage {
 			$tmpl->content .= '" method="post" enctype="multipart/form-data">';
 				
 			// Liste mit möglichen Antworten erzeugen
-			$answerlist = explode(",", $p->pollAnswerList);
-			$i = 0;
-				
-			foreach($answerlist as $a) {
+			$optionlist = explode(",", $p->pollOptionList);
+			$desclist = explode(",", $p->pollDescList);
+			
+			for($i = 0; $i < $p->pollOptionCount; $i++) {
 				$tmpl->content .= '
 				<div class="pollopt">
-				<input type="'.(($p->pollType) ? 'checkbox" name="answer['.$i.']"' : 'radio" name="answer"').' value="'.h($a).'"';
-
-				if($p->pollType == 0 && $p->answer == $a) $tmpl->content .= ' checked="yes"';
+				<input type="'.(($p->pollType) ? 'checkbox" name="option['.$i.']"' : 'radio" name="option"').' value="'.h($optionlist[$i]).'"';
 				
-				if($p->pollType == 1 && $p->answer != '' && in_array($a, explode(",", $p->answer)))
+				if($p->pollType == 0 && $p->answer == $optionlist[$i]) 
+					$tmpl->content .= ' checked="yes"';
+				
+				if($p->pollType == 1 && $p->answer != '' && in_array($optionlist[$i], explode(",", $p->answer)))
 						$tmpl->content .= ' checked="yes"';
 				
-				$tmpl->content .= '/>  '.h($a).'
+				$tmpl->content .= '/>  '.h($optionlist[$i]);
+				if($desclist[$i] != '')
+				{
+					$tmpl->content .= ' ('.h($desclist[$i]).')';
+				}
+				$tmpl->content .= '
 				</div>';
-				
-				$i++;
 			}
 			
 			$tmpl->content .= '<input type="text" name="id" value='.$p->pollID.' style="display: none;">';
@@ -112,12 +119,12 @@ class PollsPage {
 	 */
 	public static function saveAnswer() {
 		
-		if(isset($_POST['id'], $_POST['answer'])) {
+		if(isset($_POST['id'], $_POST['option'])) {
 			
 			$tmpl = new Template;
 			
 			$id = (int)$_POST['id'];
-			$answer = $_POST['answer'];
+			$answer = $_POST['option'];
 			
 			General::loadClass("Polls");
 			
@@ -179,12 +186,12 @@ class PollsPage {
 	 */
 	public static function updateAnswer() {
 	
-		if(isset($_POST['id'], $_POST['answer'])) {
+		if(isset($_POST['id'], $_POST['option'])) {
 					
 			$tmpl = new Template;
 			
 			$id = (int)$_POST['id'];
-			$answer = $_POST['answer'];
+			$answer = $_POST['option'];
 			
 			General::loadClass("Polls");
 			
@@ -237,7 +244,7 @@ class PollsPage {
 			Template::bakeError('Bitte stimme zuerst selbst ab!');
 		}
 		
-		$results = Polls::getResults($id,$p->pollAnswerList);
+		$results = Polls::getResults($id,$p->pollOptionList);
 		
 		$tmpl = new Template;
 		$tmpl->title = 'Ergebnisse';
@@ -257,23 +264,28 @@ class PollsPage {
 			
 		if($p->pollAnswerCount > 0)
 		{
+			$optionlist = explode(",", $p->pollOptionList);
+			$desclist = explode(",", $p->pollDescList);
+			
 			$tmpl->content .= '
 			<table class="polltable center">
 			<tbody>';
-				
-			foreach(explode(",", $p->pollAnswerList) as $a)
+			
+			for($i = 0; $i < $p->pollOptionCount; $i++)
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title">'.$a.'</td>
+				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span> ('.$desclist[$i].')</td>
+				</tr>
+				<tr>
 				<td class="pt_bar">
-				<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
-				&nbsp;'.$results[$a][0].'&nbsp;
-				</div>
+					<div class="thebar" style="width: '.(($results[$optionlist[$i]][0]*100) / $p->pollAnswerCount).'%">
+					&nbsp;'.$results[$optionlist[$i]][0].'&nbsp;
+					</div>
 				</td>
-				</tr>'; // nur Admins können sehen wer für was gestimmt hat
+				</tr>';
 			}
-				
+			
 			$tmpl->content .= '
 			</tbody>
 			</table>';
