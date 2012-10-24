@@ -53,9 +53,12 @@ class PollsPage {
 			$tmpl->content .= '
 			<div class="polldetail" id="poll'.$p->pollID.'"'
 			.(($active == $p->pollID) ? '' : 'style="display: none;"').'>
+			';
 			
-			<p>'.$p->pollDescription.'</p>
+			if($p->pollDescription != '')
+				$tmpl->content .= '<p>'.nl2br(h($p->pollDescription)).'</p>';
 			
+			$tmpl->content .= '
 			<form class="pollform" action="index.php?p=polls&amp;sp=';
 			
 			if($p->answer == '') $tmpl->content .= 'answer';
@@ -131,24 +134,11 @@ class PollsPage {
 			if(!Polls::checkAnswer($id, $answer))
 				Template::bakeError("Daten ungültig.");
 			
-			if(is_array($answer)) $answer = implode(",", $answer);
-			
-			
-			// doppelt abgestimmt?
-			$doppelt = MySQL::querySingle("
-				SELECT
-					pollstatus_userID
-				FROM
-					".Config::mysql_prefix."pollstatus
-				WHERE
-					pollstatus_pollID = ".$id."
-					AND pollstatus_userID = ".User::$id."
-			", __FILE__, __LINE__);
-			
-			if($doppelt) {
+			if(Polls::hasAnswered(null, $id)) {
 				Template::bakeError('Du hast bereits abgestimmt!');
 			}
-			
+
+			if(is_array($answer)) $answer = implode(",", $answer);
 			
 			MySQL::query("
 					INSERT INTO

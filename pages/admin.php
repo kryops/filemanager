@@ -29,6 +29,7 @@ class AdminPage {
 		'poll_new' => 'displayNewPollPage',
 		'poll_new_send' => 'createPoll',
 		'poll_results' => 'displayPollResults',
+		'poll_feedback' => 'displayPollFeedback',
 		'user_edit' => 'displayUserEditPage',
 		'user_edit_send' => 'editUser',
 		'user_delete' => 'deleteUser',
@@ -953,15 +954,16 @@ class AdminPage {
 		
 		for($i = 0; $i < $optioncount; $i++)
 		{
-			if($_POST['option'][$i] != '')
+			if(trim($_POST['option'][$i]) != '')
 			{
-				$optionlist[$j] = $_POST['option'][$i];
+				$optionlist[$j] = trim($_POST['option'][$i]);
 				$desclist[$j] = $_POST['optiondesc'][$i];
 				$j++;
 			}
 		}
 		
-		$optioncount = $j;
+		$optionlist = array_unique($optionlist);
+		$optioncount = count($optionlist);
 		
 		if($optioncount < 1) {
 			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
@@ -971,7 +973,6 @@ class AdminPage {
 		$descstring = implode(',', $desclist);
 		
 		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
-		$descstring = str_replace(array("\r\n", "\n"), "", $descstring);
 		
 		// haben sich Antwortmöglichkeiten geändert? Wenn ja alle alten Antworten löschen
 		
@@ -1134,15 +1135,16 @@ class AdminPage {
 		
 		for($i = 0; $i < $optioncount; $i++)
 		{
-			if($_POST['option'][$i] != '')
+			if(trim($_POST['option'][$i]) != '')
 			{
-				$optionlist[$j] = $_POST['option'][$i];
+				$optionlist[$j] = trim($_POST['option'][$i]);
 				$desclist[$j] = $_POST['optiondesc'][$i];
 				$j++;
 			}
 		}
 		
-		$optioncount = $j;
+		$optionlist = array_unique($optionlist);
+		$optioncount = count($optionlist);
 		
 		if($optioncount < 1) {
 			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
@@ -1152,8 +1154,6 @@ class AdminPage {
 		$descstring = implode(',', $desclist);
 		
 		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
-		$descstring = str_replace(array("\r\n", "\n"), "", $descstring);
-		
 		
 		MySQL::query("
 				INSERT INTO
@@ -1215,8 +1215,7 @@ class AdminPage {
 			
 		if($p->pollAnswerCount > 0)
 		{
-			// TODO: implementieren v
-			$tmpl->content .= ' <a href="" title="Wer hat bereits abgestimmt?">
+			$tmpl->content .= ' <a href="index.php?p=admin&amp;sp=poll_feedback&amp;id='.$id.'" title="Wer hat bereits abgestimmt?">
 			<img src="img/fragezeichen.png" alt="Wer?" class="icon hover" />
 			</a>
 			</p>';
@@ -1276,6 +1275,62 @@ class AdminPage {
 	
 	}
 	
+
+	
+	/**
+	* Anzeigen, wer bereits abgestimmt hat
+	*/
+	public static function displayPollFeedback() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+		General::loadClass('User');
+	
+		$p = Polls::get($id);
+	
+		if(!$p) {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+	
+		$userlist = User::getIDList();
+		$usermap = User::getMap();
+	
+		$tmpl = new Template;
+		$tmpl->title = 'Beteiligung';
+	
+		$tmpl->content = '
+		<div class="center">
+		<h1>'.$p->pollTitle.'</h1>
+		<table class="feedbacktable center">
+		<tbody>';
+	
+		foreach($userlist as $uid)
+		{
+	
+			$tmpl->content .= '
+			<tr>
+			<td>'.(Polls::hasAnswered($uid,$id) ? 'X' : '').'</td>
+			<td>'.h($usermap[$uid]).'</td>
+			</tr>
+			';
+	
+		}
+	
+		$tmpl->content .= '
+		</tbody>
+		</table>
+		<br/>
+		<p><a class="button wide" href="index.php?p=admin&amp;sp=poll_results&amp;id='.$id.'">Zurück</a></p>
+		</div>';
+	
+		$tmpl->output();
+	
+	}
 	
 	// BENUTZER
 	

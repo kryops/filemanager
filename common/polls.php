@@ -174,18 +174,24 @@ class Polls {
 	}
 
 	/**
-	 * Prüft, ob der aktuelle Benutzer eine Umfrage bereits beantwortet hat
+	 * Prüft, ob der Benutzer eine Umfrage bereits beantwortet hat
+	 * @param int $uid
 	 * @param int $id
 	 * @return boolean Ergebnis
 	 */
-	public static function hasAnswered($id) {
+	public static function hasAnswered($uid, $id) {
 	
+		if($uid == null)
+		{
+			$uid = User::$id;
+		}
+		
 		$query = MySQL::querySingle("
 				SELECT
 				".Config::mysql_prefix."pollstatus.*
 				FROM
 				".Config::mysql_prefix."pollstatus
-				WHERE pollstatus_pollID = ".$id." AND pollstatus_userID = ".User::$id."
+				WHERE pollstatus_pollID = ".$id." AND pollstatus_userID = ".$uid."
 				", __FILE__, __LINE__);
 		
 		return ($query) ? true : false;

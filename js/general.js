@@ -332,7 +332,7 @@ $(document).ready(function() {
 		<td><textarea rows=2 cols=30  class="text" name="optiondesc[' + optc + ']" ></textarea></td> \
 		</tr>');
 		
-		optc++;
+		optc++; // warum auch immer das für strings funktioniert ...
 		
 		$('#optioncount').attr("value",optc);
 		
@@ -345,7 +345,7 @@ $(document).ready(function() {
 		
 		var optc = $('#optioncount').attr("value");
 		
-		if(optc === null) {
+		if(optc === null || optc == '1') {
 			return false;
 		}
 

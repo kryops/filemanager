@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Erstellungszeit: 21. Sep 2012 um 19:51
+-- Erstellungszeit: 24. Okt 2012 um 18:02
 -- Server Version: 5.5.16
 -- PHP-Version: 5.3.8
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `fmg_files` (
   `filesSize` int(10) unsigned NOT NULL,
   `filesThumbnail` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`filesID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=273 ;
 
 -- --------------------------------------------------------
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `fmg_folder` (
   `folderPath` varchar(50) NOT NULL,
   `folderParent` int(11) NOT NULL,
   PRIMARY KEY (`folderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
 
 -- --------------------------------------------------------
 
@@ -75,10 +75,13 @@ CREATE TABLE IF NOT EXISTS `fmg_poll` (
   `pollStartDate` int(10) NOT NULL,
   `pollEndDate` int(10) NOT NULL,
   `pollAnswerCount` int(10) NOT NULL,
-  `pollAnswerList` text NOT NULL,
+  `pollOptionList` text NOT NULL,
   `pollType` tinyint(1) unsigned NOT NULL,
+  `pollDescription` text NOT NULL,
+  `pollDescList` text NOT NULL,
+  `pollOptionCount` int(11) NOT NULL,
   PRIMARY KEY (`pollID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=7 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=17 ;
 
 -- --------------------------------------------------------
 
@@ -108,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `fmg_user` (
   `userAdmin` tinyint(1) unsigned NOT NULL,
   `userPassForgotten` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
