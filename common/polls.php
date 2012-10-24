@@ -198,6 +198,7 @@ class Polls {
 		
 	}
 	
+	// TODO: wird nicht mehr genutzt
 	/**
 	 * Entfernt leere Antworten aus einer eingegebenen Antwortliste
 	 */

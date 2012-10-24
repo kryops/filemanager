@@ -265,7 +265,7 @@ class PollsPage {
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span> ('.$desclist[$i].')</td>
+				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span> ('.h($desclist[$i]).')</td>
 				</tr>
  				<tr>
 				<td class="pt_bar">

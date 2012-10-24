@@ -847,7 +847,7 @@ class AdminPage {
 		$optlist = explode(',' , $p->pollOptionList);
 		$desclist = explode(',' , $p->pollDescList);
 		
-		if(isset($_GET['optc']))
+		if(isset($_GET['optc'])) // disabled javascript workaround
 		{
 			if($_GET['optc'] > $optcount)
 			{
@@ -876,8 +876,8 @@ class AdminPage {
 		{
 			$tmpl->content .= '
 				<tr id="opt'.$i.'">
-				<td><input type="text" class="text" name="option['.$i.']" value="'.$optlist[$i].'" /></td>
-				<td><textarea rows=2 cols=30  class="text" name="optiondesc['.$i.']" >'.$desclist[$i].'</textarea></td>
+				<td><input type="text" class="text" name="option['.$i.']" value="'.h($optlist[$i]).'" /></td>
+				<td><textarea rows=2 cols=30  class="text" name="optiondesc['.$i.']" >'.h($desclist[$i]).'</textarea></td>
 				</tr>';
 			
 		}
@@ -954,16 +954,17 @@ class AdminPage {
 		
 		for($i = 0; $i < $optioncount; $i++)
 		{
-			if(trim($_POST['option'][$i]) != '')
+			$o = trim($_POST['option'][$i]);
+			
+			if($o != '' AND !in_array($o, $optionlist))
 			{
-				$optionlist[$j] = trim($_POST['option'][$i]);
+				$optionlist[$j] = $o;
 				$desclist[$j] = $_POST['optiondesc'][$i];
 				$j++;
 			}
 		}
 		
-		$optionlist = array_unique($optionlist);
-		$optioncount = count($optionlist);
+		$optioncount = $j;
 		
 		if($optioncount < 1) {
 			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
@@ -1204,7 +1205,7 @@ class AdminPage {
 	
 		<div class="center">
 	
-		<h1>'.$p->pollTitle.'</h1>
+		<h1>'.h($p->pollTitle).'</h1>
 		';
 		
 		switch($p->pollAnswerCount) {
@@ -1248,7 +1249,7 @@ class AdminPage {
 					</div>
 				</td>
 				<td class="pt_users">
-					<a href="" title="'.$results[$optionlist[$i]][1].'" class="noclick">
+					<a href="" title="'.h($results[$optionlist[$i]][1]).'" class="noclick">
 						<img src="img/fragezeichen.png" alt="Personen" class="icon hover" />
 					</a>
 				</td>
@@ -1274,8 +1275,6 @@ class AdminPage {
 		$tmpl->output();
 	
 	}
-	
-
 	
 	/**
 	* Anzeigen, wer bereits abgestimmt hat
@@ -1305,7 +1304,7 @@ class AdminPage {
 	
 		$tmpl->content = '
 		<div class="center">
-		<h1>'.$p->pollTitle.'</h1>
+		<h1>'.h($p->pollTitle).'</h1>
 		<table class="feedbacktable center">
 		<tbody>';
 	
