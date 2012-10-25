@@ -29,6 +29,7 @@ class AdminPage {
 		'poll_new' => 'displayNewPollPage',
 		'poll_new_send' => 'createPoll',
 		'poll_results' => 'displayPollResults',
+		'poll_feedback' => 'displayPollFeedback',
 		'user_edit' => 'displayUserEditPage',
 		'user_edit_send' => 'editUser',
 		'user_delete' => 'deleteUser',
@@ -806,6 +807,8 @@ class AdminPage {
 		if(!$p) {
 			Template::bakeError('Die Umfrage existiert nicht!');
 		}
+		
+		$optcount = $p->pollOptionCount;
 	
 		$tmpl = new Template;
 		$tmpl->title = 'Umfrage bearbeiten';
@@ -817,11 +820,15 @@ class AdminPage {
 		<h1>Umfrage bearbeiten</h1>
 			
 		<form action="index.php?p=admin&amp;sp=poll_edit_send&amp;id='.$id.'" method="post" class="ajaxform" data-target="#form_result">
-			
+		
 		<table class="formtable center">
 		<tr>
 		<td>Titel</td>
 		<td><input type="text" class="text" name="title" value="'.h($p->pollTitle).'" maxlength="100" required /></td>
+		</tr>
+		<tr>
+		<td>Beschreibung<br/>(optional)</td>
+		<td><textarea rows=3 cols=30 class="text" name="description">'.h($p->pollDescription).'</textarea></td>
 		</tr>
 		<tr>
 		<td>Umfrage endet am</td>
@@ -835,18 +842,57 @@ class AdminPage {
 		<option value="1"'.($p->pollType == 1 ? 'selected="selected"' : '').'>Mehrere Stimmen</option>
 		</select>
 		</td>
-		</tr>
+		</tr>';
+	
+		$optlist = explode(',' , $p->pollOptionList);
+		$desclist = explode(',' , $p->pollDescList);
+		
+		if(isset($_GET['optc'])) // disabled javascript workaround
+		{
+			if($_GET['optc'] > $optcount)
+			{
+				for($i = $optcount; $i < $_GET['optc']; $i++)
+				{
+					$optlist[$i] = ''; 
+				}
+			}
+			$optcount = $_GET['optc'];
+		}
+		
+		$tmpl->content .= '
 		<tr>
-		<td>Antworten<br/>(durch Kommas<br>getrennt)</td>
-		<td><textarea rows=8 cols=30 class="text" name="answers">'.h($p->pollAnswerList).'</textarea></td>
-		</tr>
+		<td class="topspace bold center" colspan=2>Antworten<td>
+		<td class="topspace">
+			<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$id.'&amp;optc='.($optcount+1).'" title="neue Option" id="plusopt">
+						<img src="img/plus.png" alt="neu" class="icon hover vadjust" />
+					</a>
+			<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$id.'&amp;optc='.($optcount-1).'" title="Option l&ouml;schen" id="minusopt">
+						<img src="img/minus.png" alt="l&ouml;schen" class="icon hover vadjust" />
+					</a>
+		</td>
+		</tr>';
+		
+		for($i = 0; $i < $optcount; $i++)
+		{
+			$tmpl->content .= '
+				<tr id="opt'.$i.'">
+				<td><input type="text" class="text" name="option['.$i.']" value="'.h($optlist[$i]).'" /></td>
+				<td><textarea rows=2 cols=30  class="text" name="optiondesc['.$i.']" >'.h($desclist[$i]).'</textarea></td>
+				</tr>';
+			
+		}
+		
+		$tmpl->content .= '
+		
 		<tr>
 		<td class="center topspace" colspan="2">
 		<input type="submit" class="button wide" value="Speichern" />
 		</td>
 		</tr>
 		</table>
-			
+		
+		<input type="hidden" id="optioncount" name="optioncount" value="'.$optcount.'" /> 
+		
 		</form>
 	
 		<div class="center" id="form_result"></div>
@@ -864,45 +910,79 @@ class AdminPage {
 	public static function editPoll() {
 	
 		// Validierung
-		if(!isset($_GET['id'], $_POST['title'], $_POST['end'], $_POST['answers'], $_POST['type'])) {
-			Template::bakeError('Daten unvollständig!');
+		
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Keine Umfrage ausgewählt!');
 		}
-	
-		$id = (int)$_GET['id'];
 		
-		General::loadClass("Polls");
+		if(!isset($_POST['option'], $_POST['optiondesc'])) {
+			Template::bakeError('Keine Antworten!');
+		}
 		
-		$old = Polls::get($id);
+		$type = (int)$_POST['type'];
+		if(!($type == 0 OR $type == 1)) {
+			Template::bakeError('Ungültiger Umfrage-Typ!');
+		}
 		
-		if(!$old) {
-			Template::bakeError('Umfrage existiert nicht!');
+		$optioncount = (int)$_POST['optioncount'];
+		if($optioncount < 1) { 						// optioncount == 1 in Sonderfällen denkbar
+			Template::bakeError('Zu wenig Antwortmöglichkeiten!');
 		}
 		
 		if(trim($_POST['title']) == '') {
 			Template::bakeError('Kein Titel eingegeben!');
 		}
 		
-		$_POST['answers'] = Polls::validateAnswerList($_POST['answers']);
-		
-		if(trim($_POST['answers']) == '') {
-			Template::bakeError('Keine Antworten eingegeben!');
-		}
-		
-		$answers = str_replace("\r", "", $_POST['answers']);
-		$answers = str_replace("\n", "", $_POST['answers']);
 		$end = strtotime($_POST['end']);
-		
 		if(!$end OR $_POST['end'] != General::formatDate($end)) {
 			Template::bakeError('Datum ungültig!');
 		}
 		
-		// veraltete Antworten löschen
-		$newcount = $old->pollAnswerCount;
+		$id = (int)$_GET['id'];
+		General::loadClass("Polls");
+		$old = Polls::get($id);
+		if(!$old) {
+			Template::bakeError('Umfrage existiert nicht!');
+		}
 		
-		if($_POST['type'] != $old->pollType OR $answers != $old->pollAnswerList)
+		// Neue Antwort-Eingabe!!
+		
+		// @micha: ich wollte die ganze routine eich in ne funktion packen aber mit 2 listen wars mir zu blöd ...
+		$desclist = array();
+		$optionlist = array();
+		$j = 0;
+		
+		for($i = 0; $i < $optioncount; $i++)
+		{
+			$o = trim($_POST['option'][$i]);
+			
+			if($o != '' AND !in_array($o, $optionlist))
+			{
+				$optionlist[$j] = $o;
+				$desclist[$j] = $_POST['optiondesc'][$i];
+				$j++;
+			}
+		}
+		
+		$optioncount = $j;
+		
+		if($optioncount < 1) {
+			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
+		}
+		
+		$optionstring = implode(',', $optionlist);
+		$descstring = implode(',', $desclist);
+		
+		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
+		
+		// haben sich Antwortmöglichkeiten geändert? Wenn ja alle alten Antworten löschen
+		
+		$answercount = $old->pollAnswerCount;
+		
+		if($type != $old->pollType OR $optionstring != $old->pollOptionList)
 		{
 			Polls::removeAnswers($id);
-			$newcount = 0;
+			$answercount = 0;
 		}
 		
 		//TODO: Benachrichtigung das Antwort gelöscht wurde bzw. Hinweis auf neue Umfrage
@@ -914,9 +994,12 @@ class AdminPage {
 				SET
 				pollTitle = '".MySQL::escape($_POST['title'])."',
 				pollEndDate = ".$end.",
-				pollAnswerCount = ".$newcount.",
-				pollAnswerList = '".MySQL::escape($answers)."',
-				pollType = ".$_POST['type']."
+				pollAnswerCount = ".$answercount.",
+				pollOptionCount = ".$optioncount.",
+				pollOptionList = '".MySQL::escape($optionstring)."',
+				pollDescList = '".MySQL::escape($descstring)."',
+				pollType = ".$type.",
+				pollDescription = '".MySQL::escape($_POST['description'])."'
 				WHERE
 				pollID = ".$id."
 				", __FILE__, __LINE__);
@@ -932,6 +1015,13 @@ class AdminPage {
 	 */
 	public static function displayNewPollPage() {
 	
+		$optcount = 3;
+		
+		if(isset($_GET['optc']))
+		{
+			$optcount = $_GET['optc'];
+		}
+		
 		$tmpl = new Template;
 		$tmpl->title = 'Umfrage erstellen';
 	
@@ -949,6 +1039,10 @@ class AdminPage {
 		<td><input type="text" class="text" name="title" maxlength="100" required /></td>
 		</tr>
 		<tr>
+		<td>Beschreibung (optional)</td>
+		<td><textarea rows=3 cols=30 class="text" name="description"></textarea></td>
+		</tr>
+		<tr>
 		<td>Umfrage endet am</td>
 		<td><input type="text" class="text" name="end" maxlength="100" required /></td>
 		</tr>
@@ -962,16 +1056,36 @@ class AdminPage {
 		</td>
 		</tr>
 		<tr>
-		<td>Antworten (durch Kommas getrennt)</td>
-		<td><textarea rows=8 cols=30 class="text" name="answers"></textarea></td>
-		</tr>
+		<td class="separate center bold" colspan=2>Antworten (
+			<a href="index.php?p=admin&amp;sp=poll_new&amp;optc='.($optcount+1).'" title="neue Option" id="plusopt">
+						<img src="img/plus.png" alt="neu" class="icon hover vadjust" />
+					</a>
+			<a href="index.php?p=admin&amp;sp=poll_new&amp;optc='.($optcount-1).'" title="Option l&ouml;schen" id="minusopt">
+						<img src="img/minus.png" alt="l&ouml;schen" class="icon hover vadjust" />
+					</a> )
+		</td>
+		</tr>';
+		
+		for($i = 0; $i < $optcount; $i++)
+		{
+			$tmpl->content .= '
+				<tr id="opt'.$i.'">
+				<td><input type="text" class="text" name="option['.$i.']" value="" /></td>
+				<td><textarea rows=2 cols=30  class="text" name="optiondesc['.$i.']" ></textarea></td>
+				</tr>';
+			
+		}
+		
+		$tmpl->content .= '
 		<tr>
 		<td class="center topspace" colspan="2">
-		<input type="submit" class="button wide" value="Erstellen" />
+		<input type="submit" class="button wide" value="Speichern" />
 		</td>
 		</tr>
 		</table>
-			
+
+		<input type="hidden" id="optioncount" name="optioncount" value="'.$optcount.'" /> 
+		
 		</form>
 	
 		<div class="center" id="form_result"></div>
@@ -989,27 +1103,58 @@ class AdminPage {
 	public static function createPoll() {
 
 		// Validierung
-		if(!isset($_POST['title'], $_POST['end'], $_POST['answers'], $_POST['type'])) {
-			Template::bakeError('Daten unvollständig!');
+		
+		if(!isset($_POST['option'], $_POST['optiondesc'])) {
+			Template::bakeError('Keine Antworten!');
 		}
 		
-		$end = strtotime($_POST['end']);
+		$type = (int)$_POST['type'];
+		if(!($type == 0 OR $type == 1)) {
+			Template::bakeError('Ungültiger Umfrage-Typ!');
+		}
 		
-		if(!$end) {
-			Template::bakeError('Datum ungültig!');
+		$optioncount = (int)$_POST['optioncount'];
+		if($optioncount < 1) { 						// optioncount == 1 in Sonderfällen denkbar
+			Template::bakeError('Zu wenig Antwortmöglichkeiten!');
 		}
 		
 		if(trim($_POST['title']) == '') {
 			Template::bakeError('Kein Titel eingegeben!');
 		}
 		
-		General::loadClass("Polls");
-		
-		$_POST['answers'] = Polls::validateAnswerList($_POST['answers']);
-		
-		if(trim($_POST['answers']) == '') {
-			Template::bakeError('Keine Antworten eingegeben!');
+		$end = strtotime($_POST['end']);
+		if(!$end OR $_POST['end'] != General::formatDate($end)) {
+			Template::bakeError('Datum ungültig!');
 		}
+		
+		// Neue Antwort-Eingabe!!
+		
+		// @micha: siehe edit_poll
+		$desclist = array();
+		$optionlist = array();
+		$j = 0;
+		
+		for($i = 0; $i < $optioncount; $i++)
+		{
+			if(trim($_POST['option'][$i]) != '')
+			{
+				$optionlist[$j] = trim($_POST['option'][$i]);
+				$desclist[$j] = $_POST['optiondesc'][$i];
+				$j++;
+			}
+		}
+		
+		$optionlist = array_unique($optionlist);
+		$optioncount = count($optionlist);
+		
+		if($optioncount < 1) {
+			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
+		}
+		
+		$optionstring = implode(',', $optionlist);
+		$descstring = implode(',', $desclist);
+		
+		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
 		
 		MySQL::query("
 				INSERT INTO
@@ -1019,11 +1164,13 @@ class AdminPage {
 				pollStartDate = ".time().",
 				pollEndDate = ".$end.",
 				pollAnswerCount = 0,
-				pollAnswerList = '".MySQL::escape(str_replace(array("\r\n", "\n"), "", $_POST['answers']))."',
-				pollType = ".(int)$_POST['type']."
+				pollOptionCount = ".$optioncount.",
+				pollOptionList = '".MySQL::escape($optionstring)."',
+				pollDescList = '".MySQL::escape($descstring)."',
+				pollType = ".$type.",
+				pollDescription = '".MySQL::escape($_POST['description'])."'
 				", __FILE__, __LINE__);
-	
-	
+		
 		// Weiterleitung
 		$tmpl = new Template;
 		$tmpl->redirect('index.php?p=admin');
@@ -1049,7 +1196,7 @@ class AdminPage {
 			Template::bakeError('Die Umfrage existiert nicht!');
 		}
 	
-		$results = Polls::getResults($id,$p->pollAnswerList);
+		$results = Polls::getResults($id,$p->pollOptionList);
 		
 		$tmpl = new Template;
 		$tmpl->title = 'Ergebnisse';
@@ -1058,33 +1205,51 @@ class AdminPage {
 	
 		<div class="center">
 	
-		<h1>'.$p->pollTitle.'</h1>
+		<h1>'.h($p->pollTitle).'</h1>
 		';
 		
 		switch($p->pollAnswerCount) {
-			case 0: $tmpl->content .= '<p>Es hat noch niemand abgestimmt.</p>'; break;
-			case 1: $tmpl->content .= '<p>Es hat bereits eine Person abgestimmt.</p>'; break;
-			default: $tmpl->content .= '<p>Es haben bereits '.$p->pollAnswerCount.' Personen abgestimmt.</p>';
+			case 0: $tmpl->content .= '<p>Es hat noch niemand abgestimmt.'; break;
+			case 1: $tmpl->content .= '<p>Es hat bereits eine Person abgestimmt.'; break;
+			default: $tmpl->content .= '<p>Es haben bereits '.$p->pollAnswerCount.' Personen abgestimmt.';
 		}
 			
 		if($p->pollAnswerCount > 0)
 		{
+			$tmpl->content .= ' <a href="index.php?p=admin&amp;sp=poll_feedback&amp;id='.$id.'" title="Wer hat bereits abgestimmt?">
+			<img src="img/fragezeichen.png" alt="Wer?" class="icon hover" />
+			</a>
+			</p>';
+			
+			$optionlist = explode(",", $p->pollOptionList);
+			$desclist = explode(",", $p->pollDescList);
+			
 			$tmpl->content .= '
 			<table class="polltable center">
 			<tbody>';
 			
-			foreach(explode(",", $p->pollAnswerList) as $a)
+			for($i = 0; $i < $p->pollOptionCount; $i++)
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title">'.h($a).'</td>
+				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span>';
+				
+				if($desclist[$i] != '')
+				{
+					$tmpl->content .= ' ('.h($desclist[$i]).')';
+				}
+				
+				$tmpl->content .= '
+				</td>
+				</tr>
+				<tr>
 				<td class="pt_bar">
-					<div class="thebar" style="width: '.(($results[$a][0]*100) / $p->pollAnswerCount).'%">
-					&nbsp;'.$results[$a][0].'&nbsp;
+					<div class="thebar" style="width: '.(($results[$optionlist[$i]][0]*100) / $p->pollAnswerCount).'%">
+					&nbsp;'.$results[$optionlist[$i]][0].'&nbsp;
 					</div>
 				</td>
 				<td class="pt_users">
-					<a href="" title="'.$results[$a][1].'" class="noclick">
+					<a href="" title="'.h($results[$optionlist[$i]][1]).'" class="noclick">
 						<img src="img/fragezeichen.png" alt="Personen" class="icon hover" />
 					</a>
 				</td>
@@ -1094,6 +1259,10 @@ class AdminPage {
 			$tmpl->content .= '
 			</tbody>
 			</table>';
+		}
+		else
+		{
+			$tmpl->content .= '</p>';
 		}
 		
 		$tmpl->content .= '
@@ -1107,6 +1276,60 @@ class AdminPage {
 	
 	}
 	
+	/**
+	* Anzeigen, wer bereits abgestimmt hat
+	*/
+	public static function displayPollFeedback() {
+	
+		if(!isset($_GET['id'])) {
+			Template::bakeError('Daten unvollständig!');
+		}
+	
+		$id = (int)$_GET['id'];
+	
+		General::loadClass('Polls');
+		General::loadClass('User');
+	
+		$p = Polls::get($id);
+	
+		if(!$p) {
+			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+	
+		$userlist = User::getIDList();
+		$usermap = User::getMap();
+	
+		$tmpl = new Template;
+		$tmpl->title = 'Beteiligung';
+	
+		$tmpl->content = '
+		<div class="center">
+		<h1>'.h($p->pollTitle).'</h1>
+		<table class="feedbacktable center">
+		<tbody>';
+	
+		foreach($userlist as $uid)
+		{
+	
+			$tmpl->content .= '
+			<tr>
+			<td>'.(Polls::hasAnswered($uid,$id) ? 'X' : '').'</td>
+			<td>'.h($usermap[$uid]).'</td>
+			</tr>
+			';
+	
+		}
+	
+		$tmpl->content .= '
+		</tbody>
+		</table>
+		<br/>
+		<p><a class="button wide" href="index.php?p=admin&amp;sp=poll_results&amp;id='.$id.'">Zurück</a></p>
+		</div>';
+	
+		$tmpl->output();
+	
+	}
 	
 	// BENUTZER
 	

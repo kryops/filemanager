@@ -30,7 +30,7 @@ class Polls {
 	 * @param int $id
 	 * @return array Zweidimensionales Array dessen Schlüssel die Antworten der Umfrage sind
 	 */
-	public static function getResults($id, $answerlist) {
+	public static function getResults($id, $optionlist) {
 	
 		$results = array();
 		
@@ -45,17 +45,17 @@ class Polls {
 		
 		$userMap = User::getMap();
 		
-		foreach(explode(",",$answerlist) as $a) {
-			$results[$a][0] = 0;
-			$results[$a][1] = '';
+		foreach(explode(",",$optionlist) as $o) {
+			$results[$o][0] = 0;
+			$results[$o][1] = '';
 		}
 		
 		while($row = MySQL::fetch($query)) {
 			$ans = $row->pollstatusAnswer;
 			
-			if(strpos($ans, ","))
+			if(strpos($ans, ",")) // mehrere Optionen
 			{
-				$answerline = explode(",",$ans);
+				$answerline = explode(",", $ans);
 				foreach($answerline as $a) {
 					$results[$a][0]++;
 					
@@ -112,7 +112,7 @@ class Polls {
 		
 		if($query)
 		{
-			$validanswers = explode(",", $query->pollAnswerList);
+			$validoptions = explode(",", $query->pollOptionList);
 			
 			if(is_array($answer))
 			{
@@ -120,7 +120,7 @@ class Polls {
 				
 				foreach($answer as $a)
 				{
-					if(in_array($a, $validanswers))
+					if(in_array($a, $validoptions))
 						continue;
 					else
 						return false;
@@ -130,7 +130,7 @@ class Polls {
 			}
 			else
 			{				
-				if(in_array($answer, $validanswers)) 
+				if(in_array($answer, $validoptions)) 
 					return true;
 				else 
 					return false;
@@ -174,24 +174,31 @@ class Polls {
 	}
 
 	/**
-	 * Prüft, ob der aktuelle Benutzer eine Umfrage bereits beantwortet hat
+	 * Prüft, ob der Benutzer eine Umfrage bereits beantwortet hat
+	 * @param int $uid
 	 * @param int $id
 	 * @return boolean Ergebnis
 	 */
-	public static function hasAnswered($id) {
+	public static function hasAnswered($uid, $id) {
 	
+		if($uid == null)
+		{
+			$uid = User::$id;
+		}
+		
 		$query = MySQL::querySingle("
 				SELECT
 				".Config::mysql_prefix."pollstatus.*
 				FROM
 				".Config::mysql_prefix."pollstatus
-				WHERE pollstatus_pollID = ".$id." AND pollstatus_userID = ".User::$id."
+				WHERE pollstatus_pollID = ".$id." AND pollstatus_userID = ".$uid."
 				", __FILE__, __LINE__);
 		
 		return ($query) ? true : false;
 		
 	}
 	
+	// TODO: wird nicht mehr genutzt
 	/**
 	 * Entfernt leere Antworten aus einer eingegebenen Antwortliste
 	 */

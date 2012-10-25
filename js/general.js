@@ -261,7 +261,7 @@ $(document).ready(function() {
 		// Ziel-ID ermitteln
 		var id = $(this).data('id');
 		
-		if(id === null) {
+		if(id === null) {0
 			return false;
 		}
 		
@@ -282,7 +282,7 @@ $(document).ready(function() {
 
 		var id = this[this.length-2].value;
 		
-		if($(this).serialize().substring(0,6) == 'answer')
+		if($(this).serialize().substring(0,6) == 'option')
 		{
 			var head = $('#pollhead'+id)[0];
 			var body = $('#poll'+id);
@@ -297,8 +297,13 @@ $(document).ready(function() {
 				// Button-Text ändern
 				button[0].value = "Ändern";
 				// Ergebnis-Button anzeigen
-				// TODO: work-around pbresultnew ersetzen
-				button.after('<a href="index.php?p=polls&amp;sp=results&amp;id=' + id + '" class="button wide pbresultnew">Ergebnisse</a>');
+				// TODO: ohne hadjust
+				if(navigator.userAgent.indexOf("Mac") != -1)
+					button.after('<input type="button" class="button wide hadjust" value="Ergebnisse" \
+							onclick="location.href=\'index.php?p=polls&amp;sp=results&amp;id=' + id + '\'"/>');
+				else
+					button.after('<a href="index.php?p=polls&amp;sp=results&amp;id=' + id + '" class="button wide hadjust">Ergebnisse</a>');
+				
 			}
 			
 			var expanded = $(head).data('expanded') ? 0 : 1; // Umfrage zuklappen
@@ -316,6 +321,48 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 	
+	// Antwortfelder hinzufügen
+	$(document).on('click', '#plusopt', function(e) {
+		
+		var optc = $('#optioncount').attr("value");
+		
+		if(optc === null) {
+			return false;
+		}
+		
+		var before = optc-1;
+		
+		$('#opt' + before).after('<tr id="opt' + optc +'"> \
+		<td><input type="text" class="text" name="option[' + optc + ']" value="" /></td> \
+		<td><textarea rows=2 cols=30  class="text" name="optiondesc[' + optc + ']" ></textarea></td> \
+		</tr>');
+		
+		optc++; // warum auch immer das für strings funktioniert ...
+		
+		$('#optioncount').attr("value",optc);
+		
+		e.preventDefault();
+	});
+	
+	// Antwortfelder entfernen
+	$(document).on('click', '#minusopt', function(e) {
+		
+		
+		var optc = $('#optioncount').attr("value");
+		
+		if(optc === null || optc == '1') {
+			return false;
+		}
+
+		optc--;
+		
+		$('#opt' + optc).remove();
+		
+		$('#optioncount').attr("value",optc);
+		
+		e.preventDefault();
+	});
+	
 	// Klick auf Link abfangen
 	$(document).on('click', '.noclick', function(e) {
 		
@@ -325,6 +372,8 @@ $(document).ready(function() {
 	
 	// Antwort auswählen
 	$(document).on('click', '.pollopt', function(e) {
+		
+		if(this.firstElementChild == null) return true;
 		
 		if(this.firstElementChild.type == "checkbox")
 			this.firstElementChild.checked = !this.firstElementChild.checked;

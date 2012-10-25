@@ -537,18 +537,6 @@ label {
 	}
 }
 
-@media screen and (max-width:310px) {
-	
-	.formtable {
-		font-size:87.5%;
-	}
-	
-	.text {
-		width:120px;
-	}
-	
-}
-
 /* Umfragen */
 
 .poll {
@@ -584,6 +572,12 @@ label {
 	padding: 10px;
 }
 
+.polldetail p {
+	margin-top: 5px;
+	margin-left: 10px;
+	font-size: 90%;
+}
+
 .pollopt {
 	padding: 2px 5px 2px 5px;
 	margin-bottom: 5px;
@@ -595,6 +589,10 @@ label {
 	background-color:#dcdcdc;
 }
 
+.polldetail .button{
+	margin-top: 15px;
+}
+
 .pbanswer{
 	background-color:#9aff9a;
 }
@@ -603,8 +601,8 @@ label {
 	background-color:#fe7;
 }
 
-.pbresultnew {
-	margin-left: 5px;
+.hadjust{
+	margin-left: 6px;
 }
 
 #poll_status {
@@ -618,11 +616,19 @@ label {
 	border-spacing: 4px;
 }
 
+
+.feedbacktable td {
+	text-align:left;
+}
+
+.feedbacktable td:first-child {
+	padding-right: 15px;
+	text-align: right;
+}
+
 .pt_title {
-	/*max-width: 250px;*/
-	width: 150px;
-	text-align: center;
-	border-bottom: 1px solid #ccc;
+	padding-top: 5px;
+	text-align: left;
 }
 
 .pt_bar {
@@ -645,4 +651,25 @@ label {
 	padding-left: 5px;
 	padding-top: 4px;
 	vertical-align: top;
+}
+
+.separate {
+	padding: 20px 0 !important;
+}
+
+.vadjust {
+	margin-top: 10px;
+}
+
+
+@media screen and (max-width:310px) {
+	
+	.formtable {
+		font-size:87.5%;
+	}
+	
+	.text {
+		width:120px;
+	}
+	
 }
