@@ -45,7 +45,7 @@ class PollsPage {
 			$tmpl->content .= '
 			<a href="index.php?p=polls'.($active != $p->pollID ? '&amp;active='.$p->pollID : '').'" id="pollhead'.$p->pollID.'" 
 			class="poll '.(($p->answer == '') ? 'bold' : 'grey').'" data-id='.$p->pollID.' data-expanded=0 >'
-				.h($p->pollTitle).' (bis '.General::formatDate($p->pollEndDate).')
+				.h($p->pollTitle).' (bis '.General::formatDate($p->pollEndDate,false).')
 			</a>
 			';
 
@@ -73,6 +73,7 @@ class PollsPage {
 			for($i = 0; $i < $p->pollOptionCount; $i++) {
 				$tmpl->content .= '
 				<div class="pollopt">
+				<label>
 				<input type="'.(($p->pollType) ? 'checkbox" name="option['.$i.']"' : 'radio" name="option"').' value="'.h($optionlist[$i]).'"';
 				
 				if($p->pollType == 0 && $p->answer == $optionlist[$i]) 
@@ -81,12 +82,13 @@ class PollsPage {
 				if($p->pollType == 1 && $p->answer != '' && in_array($optionlist[$i], explode(",", $p->answer)))
 						$tmpl->content .= ' checked="yes"';
 				
-				$tmpl->content .= '/>  '.h($optionlist[$i]);
+				$tmpl->content .= '/>'.h($optionlist[$i]);
 				if($desclist[$i] != '')
 				{
 					$tmpl->content .= ' ('.h($desclist[$i]).')';
 				}
 				$tmpl->content .= '
+				</label>
 				</div>';
 			}
 			
@@ -146,7 +148,7 @@ class PollsPage {
 			General::loadClass("Polls");
 			
 			if(!Polls::checkAnswer($id, $answer))
-				Template::bakeError("Daten ungültig.");
+				Template::bakeError("Antwort ungültig.");
 			
 			if(Polls::hasAnswered(null, $id)) {
 				Template::bakeError('Du hast bereits abgestimmt!');
@@ -200,7 +202,7 @@ class PollsPage {
 			General::loadClass("Polls");
 			
 			if(!Polls::checkAnswer($id, $answer))
-				Template::bakeError("Daten ungültig.");
+				Template::bakeError("Antwort ungültig.");
 				
 			if(is_array($answer)) $answer = implode(",", $answer);
 			
@@ -242,6 +244,10 @@ class PollsPage {
 	
 		if(!$p) {
 			Template::bakeError('Die Umfrage existiert nicht!');
+		}
+		
+		if($p->pollEndDate < time()) {
+			Template::bakeError('Die Umfrage ist bereits abgeschlossen!');
 		}
 		
 		if(!Polls::hasAnswered(null, $id)) {

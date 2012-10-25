@@ -101,7 +101,7 @@ class Polls {
 	 * @return boolean Gültigkeit
 	 */
 	public static function checkAnswer($id,$answer)
-	{
+	{	
 		$query = MySQL::querySingle("SELECT
 							  ".Config::mysql_prefix."poll.*
 							  FROM
@@ -112,6 +112,8 @@ class Polls {
 		
 		if($query)
 		{
+			if($query->pollEndDate < time()) return false;
+			
 			$validoptions = explode(",", $query->pollOptionList);
 			
 			if(is_array($answer))
