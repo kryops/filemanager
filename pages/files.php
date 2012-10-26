@@ -878,7 +878,7 @@ class FilesPage {
 		if(!count($folders) AND !count($files)) {
 			$content .= '
 		<div class="emptyfolder italic">
-			Der Odner ist leer.
+			Der Ordner ist leer.
 		</div>';
 		}
 		
