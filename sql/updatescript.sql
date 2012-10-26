@@ -14,11 +14,11 @@ ALTER TABLE `fmg_poll`
 ADD (
   `pollDescription` text NOT NULL,
   `pollDescList` text NOT NULL,
-  `pollOptionCount` int(10) NOT NULL,
+  `pollOptionCount` int(10) NOT NULL
 );
   
 ALTER TABLE `fmg_poll`
-CHANGE `pollAnswerList` `pollOptionList` int(10) NOT NULL;
+CHANGE `pollAnswerList` `pollOptionList` text NOT NULL;
 
 -- --------------------------------------------------------
 --
@@ -28,3 +28,8 @@ CHANGE `pollAnswerList` `pollOptionList` int(10) NOT NULL;
 
 UPDATE `fmg_poll`
 SET `pollOptionCount` = (LENGTH(`pollOptionList`) - LENGTH(REPLACE(`pollOptionList`, ',', '')) + 1);
+
+
+
+UPDATE `fmg_poll`
+SET `pollDescList` = REPEAT(',', `pollOptionCount`-1);
