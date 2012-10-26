@@ -165,7 +165,7 @@ class AdminPage {
 			$tmpl->content .= '
 			<tr id="poll'.$row->pollID.'">
 				<td>'.h($row->pollTitle).'</td>
-				<td>'.General::formatDate($row->pollEndDate).'</td>
+				<td>'.General::formatDate($row->pollEndDate, false).'</td>
 				<td>
 					<a href="index.php?p=admin&amp;sp=poll_results&amp;id='.$row->pollID.'" title="Ergebnisse ansehen">
 						<img src="img/ansehen.png" alt="ansehen" class="icon hover" />
@@ -832,7 +832,7 @@ class AdminPage {
 		</tr>
 		<tr>
 		<td>Umfrage endet am</td>
-		<td><input type="text" class="text" name="end" value="'.General::formatDate($p->pollEndDate).'" maxlength="100" required /></td>
+		<td><input type="text" class="text" name="end" value="'.General::formatDate($p->pollEndDate, false).'" maxlength="100" required /></td>
 		</tr>
 		<tr>
 		<td>Stimmen</td>
@@ -934,7 +934,7 @@ class AdminPage {
 		}
 		
 		$end = strtotime($_POST['end']);
-		if(!$end OR $_POST['end'] != General::formatDate($end)) {
+		if(!$end OR $_POST['end'] != General::formatDate($end, false)) {
 			Template::bakeError('Datum ungültig!');
 		}
 		
@@ -1219,7 +1219,10 @@ class AdminPage {
 			$tmpl->content .= ' <a href="index.php?p=admin&amp;sp=poll_feedback&amp;id='.$id.'" title="Wer hat bereits abgestimmt?">
 			<img src="img/fragezeichen.png" alt="Wer?" class="icon hover" />
 			</a>
-			</p>';
+			<br>
+			Die Umfrage endet'.($p->pollEndDate < time() ? 'e' : '').' am '.General::formatDate($p->pollEndDate, true).'.
+			</p>
+			';
 			
 			$optionlist = explode(",", $p->pollOptionList);
 			$desclist = explode(",", $p->pollDescList);
@@ -1296,7 +1299,6 @@ class AdminPage {
 			Template::bakeError('Die Umfrage existiert nicht!');
 		}
 	
-		$userlist = User::getIDList();
 		$usermap = User::getMap();
 	
 		$tmpl = new Template;
@@ -1308,7 +1310,7 @@ class AdminPage {
 		<table class="feedbacktable center">
 		<tbody>';
 	
-		foreach($userlist as $uid)
+		foreach(array_keys($usermap) as $uid)
 		{
 	
 			$tmpl->content .= '

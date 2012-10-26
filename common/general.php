@@ -122,8 +122,13 @@ class General {
 	 * @param int $date Unix-Timestamp
 	 * @return string formatiertes Datum
 	 */
-	public static function formatDate($date) {
-		return strftime('%d.%m.%Y', $date);
+	public static function formatDate($date, $full) {
+		if($full AND setlocale(LC_TIME, "de_DE"))
+		{
+			return strftime('%d. %B %Y', $date);
+		}
+		else
+			return strftime('%d.%m.%Y', $date);
 	}
 	
 }

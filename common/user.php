@@ -71,31 +71,6 @@ class User {
 	}
 	
 	/**
-	 * Gibt eine Liste aller gültigen Benutzer ID's zurück
-	 * @return Liste Liste mit gültigen Benutzer IDs
-	 */
-	public static function getIDList() {
-	
-		$query = MySQL::query("
-				SELECT
-				*
-				FROM
-				".Config::mysql_prefix."user
-				", __FILE__, __LINE__);
-	
-		$list = array();
-	
-		if($query) {
-			while($row = MySQL::fetch($query)) {
-				$list[] = $row->userID;
-			}
-		}
-	
-		return $list;
-	
-	}
-	
-	/**
 	 * Überprüft anhand von Session und Cookie, ob der Benutzer eingeloggt ist
 	 * @return boolean Erfolg
 	 */

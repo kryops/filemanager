@@ -369,19 +369,6 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 	
-	
-	// Antwort auswählen
-	$(document).on('click', '.pollopt', function(e) {
-		
-		if(this.firstElementChild == null) return true;
-		
-		if(this.firstElementChild.type == "checkbox")
-			this.firstElementChild.checked = !this.firstElementChild.checked;
-		else // radio button
-			this.firstElementChild.checked = true;
-
-	});
-	
 	// Wurzelordner ändern
 	$('#select_topfolder').change(function() {
 		url('index.php?p=files&top='+$(this).val());

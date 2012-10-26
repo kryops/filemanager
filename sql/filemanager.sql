@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `fmg_files` (
   `filesSize` int(10) unsigned NOT NULL,
   `filesThumbnail` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`filesID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=273 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `fmg_folder` (
   `folderPath` varchar(50) NOT NULL,
   `folderParent` int(11) NOT NULL,
   PRIMARY KEY (`folderID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS `fmg_poll` (
   `pollType` tinyint(1) unsigned NOT NULL,
   `pollDescription` text NOT NULL,
   `pollDescList` text NOT NULL,
-  `pollOptionCount` int(11) NOT NULL,
+  `pollOptionCount` int(10) NOT NULL,
   PRIMARY KEY (`pollID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=17 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `fmg_user` (
   `userAdmin` tinyint(1) unsigned NOT NULL,
   `userPassForgotten` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
