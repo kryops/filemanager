@@ -973,7 +973,7 @@ class FilesPage {
 			$content .= '
 					<div class="file_iconspacer"></div>
 					
-					<a href="files/'.$path.$f->filesPath.'" target="_blank" data-label="ansehen">
+					<a href="files/'.$path_url.'" target="_blank" data-label="ansehen">
 						<img src="img/ansehen.png" class="icon hover" alt="ansehen" title="ansehen" />
 					</a>
 					<a href="index.php?p=files&amp;sp=download&amp;id='.$f->filesID.'" data-label="speichern">
