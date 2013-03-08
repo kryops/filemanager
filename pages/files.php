@@ -902,6 +902,10 @@ class FilesPage {
 			$path_url = $path.rawurlencode(utf8_decode($f->filesPath));
 		}
 		
+		// Caching verhindern
+		$path_url .= time();
+		
+		
 		$content = '
 		<div class="file';
 		
