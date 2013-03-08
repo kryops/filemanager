@@ -903,7 +903,7 @@ class FilesPage {
 		}
 		
 		// Caching verhindern
-		$path_url .= time();
+		$path_url .= '?'.time();
 		
 		
 		$content = '
