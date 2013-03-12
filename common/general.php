@@ -122,7 +122,7 @@ class General {
 	 * @param int $date Unix-Timestamp
 	 * @return string formatiertes Datum
 	 */
-	public static function formatDate($date, $full) {
+	public static function formatDate($date, $full=false) {
 		if($full AND setlocale(LC_TIME, "de_DE"))
 		{
 			return strftime('%d. %B %Y', $date);

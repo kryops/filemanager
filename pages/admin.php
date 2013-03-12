@@ -934,7 +934,7 @@ class AdminPage {
 		}
 		
 		$end = strtotime($_POST['end']);
-		if(!$end OR $_POST['end'] != General::formatDate($end, false)) {
+		if(!$end) {
 			Template::bakeError('Datum ungültig!');
 		}
 		
@@ -1123,7 +1123,7 @@ class AdminPage {
 		}
 		
 		$end = strtotime($_POST['end']);
-		if(!$end OR $_POST['end'] != General::formatDate($end)) {
+		if(!$end) {
 			Template::bakeError('Datum ungültig!');
 		}
 		
