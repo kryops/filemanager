@@ -861,14 +861,13 @@ class AdminPage {
 		
 		$tmpl->content .= '
 		<tr>
-		<td class="topspace bold center" colspan=2>Antworten<td>
-		<td class="topspace">
+		<td class="topspace bold center" colspan=2>Antworten (
 			<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$id.'&amp;optc='.($optcount+1).'" title="neue Option" id="plusopt">
 						<img src="img/plus.png" alt="neu" class="icon hover vadjust" />
 					</a>
 			<a href="index.php?p=admin&amp;sp=poll_edit&amp;id='.$id.'&amp;optc='.($optcount-1).'" title="Option l&ouml;schen" id="minusopt">
 						<img src="img/minus.png" alt="l&ouml;schen" class="icon hover vadjust" />
-					</a>
+					</a> )
 		</td>
 		</tr>';
 		
@@ -883,7 +882,12 @@ class AdminPage {
 		}
 		
 		$tmpl->content .= '
-		
+				
+		<tr>
+		<td class="separate center" colspan=2>
+		<input type="checkbox" name="mail" value="mail"> E-Mail Benachrichtigung
+		</td>
+		</tr>
 		<tr>
 		<td class="center topspace" colspan="2">
 		<input type="submit" class="button wide" value="Speichern" />
@@ -984,9 +988,7 @@ class AdminPage {
 			Polls::removeAnswers($id);
 			$answercount = 0;
 		}
-		
-		//TODO: Benachrichtigung das Antwort gelöscht wurde bzw. Hinweis auf neue Umfrage
-	
+
 		// speichern
 		MySQL::query("
 				UPDATE
@@ -1003,6 +1005,42 @@ class AdminPage {
 				WHERE
 				pollID = ".$id."
 				", __FILE__, __LINE__);
+		
+		// E-Mail Benachrichtigung
+		
+		if(isset($_POST['mail']))
+		{
+			$userlist = MySQL::query("
+					SELECT
+					userName,
+					userEmail
+					FROM
+					".Config::mysql_prefix."user
+					", __FILE__, __LINE__);
+			// TODO: notification flag beachten?
+			
+			while($row = MySQL::fetch($userlist)) {
+				@mail(
+						$row->userEmail,
+						'['.Config::name.'] Geänderte Umfrage',
+						'<!DOCTYPE html>
+					<html lang="de">
+					<head>
+						<meta charset="utf-8" />
+					</head>
+					<body>
+				
+					<p>Hallo '.h($row->userName).',</p>
+					<p>Folgende Umfrage wurde geändert:</p>
+					<p><a href="'.Config::url.'/index.php?p=polls&active='.$id.'">'.h($_POST['title']).'</a></p>
+					<p>Bitte sieh nach ob deine Antwort noch aktuell ist.</p>
+						
+					</body>
+					</html>',
+						"From: ".Config::mail_addr."\nContent-type: text/html; charset=utf-8\nX-Mailer: PHP/".phpversion()
+				);
+			}
+		}
 		
 		// Weiterleitung
 		$tmpl = new Template;
@@ -1077,6 +1115,12 @@ class AdminPage {
 		}
 		
 		$tmpl->content .= '
+				
+		<tr>
+		<td class="separate center" colspan=2>
+		<input type="checkbox" name="mail" value="mail"> E-Mail Benachrichtigung
+		</td>
+		</tr>
 		<tr>
 		<td class="center topspace" colspan="2">
 		<input type="submit" class="button wide" value="Speichern" />
@@ -1171,10 +1215,47 @@ class AdminPage {
 				pollDescription = '".MySQL::escape($_POST['description'])."'
 				", __FILE__, __LINE__);
 		
+		$pollid = MySQL::id();
+		
+		// E-Mail Benachrichtigung
+		
+		if(isset($_POST['mail'])) 
+		{
+			$userlist = MySQL::query("
+					SELECT
+					userName,
+					userEmail
+					FROM
+					".Config::mysql_prefix."user
+					", __FILE__, __LINE__);
+			// TODO: notification flag beachten?
+			
+			while($row = MySQL::fetch($userlist)) {
+				@mail(
+					$row->userEmail,
+					'['.Config::name.'] Neue Umfrage',
+					'<!DOCTYPE html>
+					<html lang="de">
+					<head>
+						<meta charset="utf-8" />
+					</head>
+					<body>
+							
+					<p>Hallo '.h($row->userName).',</p>
+					<p>Es wurde eine neue Umfrage erstellt:</p>
+					<p><a href="'.Config::url.'/index.php?p=polls&active='.$pollid.'">'.h($_POST['title']).'</a></p>
+									
+					</body>
+					</html>',
+					"From: ".Config::mail_addr."\nContent-type: text/html; charset=utf-8\nX-Mailer: PHP/".phpversion()
+				);
+			}
+		}
+			
 		// Weiterleitung
 		$tmpl = new Template;
 		$tmpl->redirect('index.php?p=admin');
-	
+		
 	}
 
 	/**
