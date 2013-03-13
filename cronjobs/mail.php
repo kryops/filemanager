@@ -84,6 +84,9 @@ while($row = MySQL::fetch($query)) {
 		$fpath = rawurlencode(utf8_decode($row->filesPath));
 	}
 	
+	// Caching bei überschriebenen Dateien
+	$fpath .= '?'.$row->filesDate;
+	
 	$content .= '
 	<li><a href="'.Config::url.'/files/'.$path_url.$fpath.'">'.h($path_names.$row->filesName).'</a></li>';
 	

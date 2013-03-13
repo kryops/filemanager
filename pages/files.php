@@ -878,7 +878,7 @@ class FilesPage {
 		if(!count($folders) AND !count($files)) {
 			$content .= '
 		<div class="emptyfolder italic">
-			Der Odner ist leer.
+			Der Ordner ist leer.
 		</div>';
 		}
 		
@@ -901,6 +901,10 @@ class FilesPage {
 		else {
 			$path_url = $path.rawurlencode(utf8_decode($f->filesPath));
 		}
+		
+		// Caching verhindern
+		$path_url .= '?'.$f->filesDate;
+		
 		
 		$content = '
 		<div class="file';
@@ -969,7 +973,7 @@ class FilesPage {
 			$content .= '
 					<div class="file_iconspacer"></div>
 					
-					<a href="files/'.$path.$f->filesPath.'" target="_blank" data-label="ansehen">
+					<a href="files/'.$path_url.'" target="_blank" data-label="ansehen">
 						<img src="img/ansehen.png" class="icon hover" alt="ansehen" title="ansehen" />
 					</a>
 					<a href="index.php?p=files&amp;sp=download&amp;id='.$f->filesID.'" data-label="speichern">
