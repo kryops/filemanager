@@ -1031,9 +1031,10 @@ class AdminPage {
 					<body>
 				
 					<p>Hallo '.h($row->userName).',</p>
-					<p>Folgende Umfrage wurde geändert:</p>
+					<p>Auf der '.Config::name.' Website wurde folgende Umfrage geändert:</p>
 					<p><a href="'.Config::url.'/index.php?p=polls&active='.$id.'">'.h($_POST['title']).'</a></p>
-					<p>Bitte sieh nach ob deine Antwort noch aktuell ist.</p>
+					<p>Bitte melde dich an und sieh nach ob deine Antwort noch aktuell ist.</p>
+					<p>Mit freundlichen Grüßen,<br/>das '.Config::name.'-Team</p>
 						
 					</body>
 					</html>',
