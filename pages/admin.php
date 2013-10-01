@@ -844,8 +844,8 @@ class AdminPage {
 		</td>
 		</tr>';
 	
-		$optlist = explode(',' , $p->pollOptionList);
-		$desclist = explode(',' , $p->pollDescList);
+		$optlist = explode('##' , $p->pollOptionList);
+		$desclist = explode('##' , $p->pollDescList);
 		
 		if(isset($_GET['optc'])) // disabled javascript workaround
 		{
@@ -962,7 +962,7 @@ class AdminPage {
 			
 			if($o != '' AND !in_array($o, $optionlist))
 			{
-				$optionlist[$j] = $o;
+				$optionlist[$j] = preg_replace("/#+/", "#", $o);
 				$desclist[$j] = $_POST['optiondesc'][$i];
 				$j++;
 			}
@@ -971,12 +971,13 @@ class AdminPage {
 		$optioncount = $j;
 		
 		if($optioncount < 1) {
-			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
+			Template::bakeError('Keine Antwort-Möglichkeiten!');
 		}
 		
-		$optionstring = implode(',', $optionlist);
-		$descstring = implode(',', $desclist);
+		$optionstring = implode('##', $optionlist);
+		$descstring = implode('##', $desclist);
 		
+		// newlines nur in Beschreibung
 		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
 		
 		// haben sich Antwortmöglichkeiten geändert? Wenn ja alle alten Antworten löschen
@@ -1017,7 +1018,6 @@ class AdminPage {
 					FROM
 					".Config::mysql_prefix."user
 					", __FILE__, __LINE__);
-			// TODO: notification flag beachten?
 			
 			while($row = MySQL::fetch($userlist)) {
 				@mail(
@@ -1181,24 +1181,26 @@ class AdminPage {
 		
 		for($i = 0; $i < $optioncount; $i++)
 		{
-			if(trim($_POST['option'][$i]) != '')
+			$o = trim($_POST['option'][$i]);
+			
+			if($o != '' AND !in_array($o, $optionlist))
 			{
-				$optionlist[$j] = trim($_POST['option'][$i]);
+				$optionlist[$j] = preg_replace("/#+/", "#", $o);
 				$desclist[$j] = $_POST['optiondesc'][$i];
 				$j++;
 			}
 		}
 		
-		$optionlist = array_unique($optionlist);
-		$optioncount = count($optionlist);
+		$optioncount = $j;
 		
-		if($optioncount < 1) {
-			Template::bakeError('Zu wenig Antwort-Möglichkeiten!');
+		if($optioncount < 1) { // eine Antwort reicht
+			Template::bakeError('Keine Antwort-Möglichkeiten!');
 		}
 		
-		$optionstring = implode(',', $optionlist);
-		$descstring = implode(',', $desclist);
+		$optionstring = implode('##', $optionlist);
+		$descstring = implode('##', $desclist);
 		
+		// newlines nur in Beschreibung
 		$optionstring = str_replace(array("\r\n", "\n"), "", $optionstring);
 		
 		MySQL::query("
@@ -1229,7 +1231,6 @@ class AdminPage {
 					FROM
 					".Config::mysql_prefix."user
 					", __FILE__, __LINE__);
-			// TODO: notification flag beachten?
 			
 			while($row = MySQL::fetch($userlist)) {
 				@mail(
@@ -1243,9 +1244,11 @@ class AdminPage {
 					<body>
 							
 					<p>Hallo '.h($row->userName).',</p>
-					<p>Es wurde eine neue Umfrage erstellt:</p>
+					<p>Auf der '.Config::name.' Website wurde eine neue Umfrage erstellt:</p>
 					<p><a href="'.Config::url.'/index.php?p=polls&active='.$pollid.'">'.h($_POST['title']).'</a></p>
-									
+					<p>Bitte melde dich an und gib deine Stimme ab.</p>
+					<p>Mit freundlichen Grüßen,<br/>das '.Config::name.'-Team</p>
+					
 					</body>
 					</html>',
 					"From: ".Config::mail_addr."\nContent-type: text/html; charset=utf-8\nX-Mailer: PHP/".phpversion()
@@ -1306,8 +1309,8 @@ class AdminPage {
 			</p>
 			';
 			
-			$optionlist = explode(",", $p->pollOptionList);
-			$desclist = explode(",", $p->pollDescList);
+			$optionlist = explode("##", $p->pollOptionList);
+			$desclist = explode("##", $p->pollDescList);
 			
 			$tmpl->content .= '
 			<table class="polltable center">
@@ -1321,7 +1324,7 @@ class AdminPage {
 				
 				if($desclist[$i] != '')
 				{
-					$tmpl->content .= ' ('.h($desclist[$i]).')';
+					$tmpl->content .= ' ('.nl2br(h($desclist[$i])).')';
 				}
 				
 				$tmpl->content .= '
@@ -1332,12 +1335,15 @@ class AdminPage {
 					<div class="thebar" style="width: '.(($results[$optionlist[$i]][0]*100) / $p->pollAnswerCount).'%">
 					&nbsp;'.$results[$optionlist[$i]][0].'&nbsp;
 					</div>
-				</td>
-				<td class="pt_users">
-					<a href="" title="'.h($results[$optionlist[$i]][1]).'" class="noclick">
-						<img src="img/fragezeichen.png" alt="Personen" class="icon hover" />
-					</a>
-				</td>
+				</td>';
+				// Maßnahme zur Wahrung der Anonymität
+				
+				//<td class="pt_users">
+				//	<a href="" title="'.h($results[$optionlist[$i]][1]).'" class="noclick">
+				//		<img src="img/fragezeichen.png" alt="Personen" class="icon hover" />
+				//	</a>
+				//</td>
+				$tmpl->content .= '
 				</tr>';
 			}
 			
