@@ -50,8 +50,8 @@ class UploadPage {
 					// Datei schon vorhanden
 					while(file_exists($destination)) {
 						
-						if(strlen($name_new > 96)) {
-							$name_new = substr($name_new, -96, 96);
+						if(strlen($name_new > 200)) {
+							$name_new = substr($name_new, -200, 200);
 							$i++;
 						}
 						

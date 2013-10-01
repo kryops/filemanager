@@ -401,7 +401,7 @@ class FilesPage {
 			</tr>
 			<tr>
 				<td>Angezeigter Name</td>
-				<td><input type="text" class="text" name="name" value="'.h($file->filesName).'" maxlength="100" style="width:100%" /></td>
+				<td><input type="text" class="text" name="name" value="'.h($file->filesName).'" maxlength="200" style="width:100%" /></td>
 			</tr>
 			<tr>
 				<td>Datei neu hochladen <span class="italic">(optional)</span></td>

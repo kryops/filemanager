@@ -554,11 +554,11 @@ class AdminPage {
 			</tr>
 			<tr>
 				<td>Angezeigter Name</td>
-				<td><input type="text" class="text" name="name" value="'.h($f->folderName).'" maxlength="100" required /></td>
+				<td><input type="text" class="text" name="name" value="'.h($f->folderName).'" maxlength="200" required /></td>
 			</tr>
 			<tr>
 				<td>Name im Dateisystem</td>
-				<td><input type="text" class="text" name="path" value="'.h($f->folderPath).'" maxlength="100" required /></td>
+				<td><input type="text" class="text" name="path" value="'.h($f->folderPath).'" maxlength="200" required /></td>
 			</tr>
 			<tr>
 				<td class="center topspace" colspan="2">
