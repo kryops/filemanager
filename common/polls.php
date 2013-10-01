@@ -200,42 +200,6 @@ class Polls {
 		
 	}
 	
-	// TODO: wird nicht mehr genutzt
-	/**
-	 * Entfernt leere Antworten aus einer eingegebenen Antwortliste
-	 */
-	 /*
-	public static function validateAnswerList($answers) {
-		
-		$answers_clean = array();
-		
-		$answers = str_replace(
-			array("\r\n", "\n"),
-			"",
-			$answers
-		);
-		
-		$answers = explode(',', $answers);
-		
-		foreach($answers as $a) {
-			$a = trim($a);
-			
-			if($a != '') {
-				$answers_clean[] = $a;
-			}
-		}
-		
-		if(!count($answers_clean)) {
-			return "";
-		}
-		else {
-			$answers_clean = array_unique($answers_clean);
-			return implode(",", $answers_clean);
-		}
-		
-	}
-	*/
-	
 }
 
 ?>
