@@ -45,7 +45,7 @@ class Polls {
 		
 		$userMap = User::getMap();
 		
-		foreach(explode(",",$optionlist) as $o) {
+		foreach(explode("##",$optionlist) as $o) {
 			$results[$o][0] = 0;
 			$results[$o][1] = '';
 		}
@@ -53,9 +53,9 @@ class Polls {
 		while($row = MySQL::fetch($query)) {
 			$ans = $row->pollstatusAnswer;
 			
-			if(strpos($ans, ",")) // mehrere Optionen
+			if(strpos($ans, "##")) // mehrere Optionen
 			{
-				$answerline = explode(",", $ans);
+				$answerline = explode("##", $ans);
 				foreach($answerline as $a) {
 					$results[$a][0]++;
 					
@@ -114,7 +114,7 @@ class Polls {
 		{
 			if($query->pollEndDate < time()) return false;
 			
-			$validoptions = explode(",", $query->pollOptionList);
+			$validoptions = explode("##", $query->pollOptionList);
 			
 			if(is_array($answer))
 			{
@@ -197,40 +197,6 @@ class Polls {
 				", __FILE__, __LINE__);
 		
 		return ($query) ? true : false;
-		
-	}
-	
-	// TODO: wird nicht mehr genutzt
-	/**
-	 * Entfernt leere Antworten aus einer eingegebenen Antwortliste
-	 */
-	public static function validateAnswerList($answers) {
-		
-		$answers_clean = array();
-		
-		$answers = str_replace(
-			array("\r\n", "\n"),
-			"",
-			$answers
-		);
-		
-		$answers = explode(',', $answers);
-		
-		foreach($answers as $a) {
-			$a = trim($a);
-			
-			if($a != '') {
-				$answers_clean[] = $a;
-			}
-		}
-		
-		if(!count($answers_clean)) {
-			return "";
-		}
-		else {
-			$answers_clean = array_unique($answers_clean);
-			return implode(",", $answers_clean);
-		}
 		
 	}
 	

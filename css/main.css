@@ -589,6 +589,10 @@ label {
 	background-color:#dcdcdc;
 }
 
+.pollopt input {
+	margin-right: 8px;
+}
+
 .polldetail .button{
 	margin-top: 15px;
 }

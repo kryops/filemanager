@@ -67,8 +67,8 @@ class PollsPage {
 			$tmpl->content .= '" method="post" enctype="multipart/form-data">';
 				
 			// Liste mit möglichen Antworten erzeugen
-			$optionlist = explode(",", $p->pollOptionList);
-			$desclist = explode(",", $p->pollDescList);
+			$optionlist = explode("##", $p->pollOptionList);
+			$desclist = explode("##", $p->pollDescList);
 			
 			for($i = 0; $i < $p->pollOptionCount; $i++) {
 				$tmpl->content .= '
@@ -79,13 +79,13 @@ class PollsPage {
 				if($p->pollType == 0 && $p->answer == $optionlist[$i]) 
 					$tmpl->content .= ' checked="yes"';
 				
-				if($p->pollType == 1 && $p->answer != '' && in_array($optionlist[$i], explode(",", $p->answer)))
+				if($p->pollType == 1 && $p->answer != '' && in_array($optionlist[$i], explode("##", $p->answer)))
 						$tmpl->content .= ' checked="yes"';
 				
 				$tmpl->content .= '/>'.h($optionlist[$i]);
 				if($desclist[$i] != '')
 				{
-					$tmpl->content .= ' ('.h($desclist[$i]).')';
+					$tmpl->content .= ' ('.nl2br(h($desclist[$i])).')';
 				}
 				$tmpl->content .= '
 				</label>
@@ -154,7 +154,7 @@ class PollsPage {
 				Template::bakeError('Du hast bereits abgestimmt!');
 			}
 
-			if(is_array($answer)) $answer = implode(",", $answer);
+			if(is_array($answer)) $answer = implode("##", $answer); // Antworten können keine "##" mehr enthalten
 			
 			MySQL::query("
 					INSERT INTO
@@ -204,7 +204,7 @@ class PollsPage {
 			if(!Polls::checkAnswer($id, $answer))
 				Template::bakeError("Antwort ungültig.");
 				
-			if(is_array($answer)) $answer = implode(",", $answer);
+			if(is_array($answer)) $answer = implode("##", $answer);
 			
 			MySQL::query("
 					UPDATE
@@ -274,8 +274,8 @@ class PollsPage {
 			
 		if($p->pollAnswerCount > 0)
 		{
-			$optionlist = explode(",", $p->pollOptionList);
-			$desclist = explode(",", $p->pollDescList);
+			$optionlist = explode("##", $p->pollOptionList);
+			$desclist = explode("##", $p->pollDescList);
 			
 			$tmpl->content .= '
 			<table class="polltable center">
@@ -285,7 +285,7 @@ class PollsPage {
 			{
 				$tmpl->content .= '
 				<tr>
-				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span> ('.h($desclist[$i]).')</td>
+				<td class="pt_title" colspan=2><span class="bold">'.h($optionlist[$i]).'</span> ('.nl2br(h($desclist[$i])).')</td>
 				</tr>
  				<tr>
 				<td class="pt_bar">
