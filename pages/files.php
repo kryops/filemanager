@@ -606,12 +606,10 @@ class FilesPage {
 		// herunterladen
 		$path = './files/'.Folder::getFolderPath($file->files_folderID).utf8_decode($file->filesPath);
 		
-		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename="'.$file->filesName.'"');
-		echo file_get_contents($path);
+		self::sendFile($path,$file->filesName);
 	}
-	
-	
+
+
 	/**
 	 * Suchfunktion
 	 */
@@ -809,9 +807,7 @@ class FilesPage {
 		
 		
 		// herunterladen
-		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename="'.$name.'.zip"');
-		echo file_get_contents('./files/'.$filename);
+		self::sendFile('./files/'.$filename,$name.'.zip');
 		
 		// Archiv wieder löschen
 		@unlink('./files/'.$filename);
@@ -823,6 +819,14 @@ class FilesPage {
 	 * Hilfsfunktionen
 	 */
 	
+	protected static function sendFile($file,$name) {
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="'.$name.'"');
+		if(PHP_INT_SIZE >= 8)
+			header('Content-Length: '.filesize($file));
+		
+		readfile($file);
+	}
 	
 	
 	/**
